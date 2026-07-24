@@ -1,0 +1,392 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amala Express Bukka — Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Fraunces:ital,wght@0,600;0,700;1,600&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1b120d;
+    --bg-2: #241a13;
+    --card: #2c2019;
+    --paprika: #c8451c;
+    --paprika-bright: #e05a26;
+    --gold: #d9a15b;
+    --cream: #f3e9dc;
+    --cream-dim: #cbb9a5;
+    --line: rgba(243,233,220,0.14);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0;
+    padding:0;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Space Grotesk', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body{
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(243,233,220,0.05) 1px, transparent 1.6px);
+    background-size: 22px 22px;
+    min-height: 100vh;
+  }
+
+  .wrap{
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 0 80px;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position: relative;
+    padding: 56px 28px 40px;
+    text-align: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hero::before{
+    content: "";
+    position: absolute;
+    top: -120px; left: 50%;
+    width: 480px; height: 480px;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(200,69,28,0.35) 0%, rgba(200,69,28,0) 68%);
+    pointer-events: none;
+  }
+
+  .eyebrow{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+  }
+
+  .eyebrow::before, .eyebrow::after{
+    content: "";
+    width: 22px; height: 1px;
+    background: var(--gold);
+    opacity: 0.6;
+  }
+
+  .brand{
+    position: relative;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(38px, 9vw, 62px);
+    line-height: 0.98;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--cream);
+  }
+
+  .brand span{
+    color: var(--paprika-bright);
+  }
+
+  .tagline{
+    position: relative;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--cream-dim);
+    margin: 14px auto 0;
+    max-width: 420px;
+  }
+
+  .hero-rule{
+    position: relative;
+    margin: 26px auto 0;
+    width: 140px;
+    height: 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 5px;
+  }
+  .hero-rule i{
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--paprika);
+    opacity: 0.85;
+  }
+  .hero-rule i:nth-child(3n){ background: var(--gold); }
+
+  /* ---------- NAV ---------- */
+  .catnav{
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 14px 20px;
+    background: rgba(27,18,13,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .catnav::-webkit-scrollbar{ display:none; }
+
+  .catnav a{
+    flex: 0 0 auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--cream-dim);
+    text-decoration: none;
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    transition: color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .catnav a:hover, .catnav a:focus-visible{
+    color: var(--bg);
+    background: var(--gold);
+    border-color: var(--gold);
+    outline: none;
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section.category{
+    padding: 46px 24px 6px;
+    scroll-margin-top: 64px;
+  }
+
+  .cat-head{
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .cat-num{
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--paprika-bright);
+    border: 1px solid rgba(200,69,28,0.5);
+    border-radius: 999px;
+    padding: 3px 9px;
+    letter-spacing: 0.05em;
+  }
+
+  .cat-title{
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: clamp(24px, 5vw, 32px);
+    margin: 0;
+    color: var(--cream);
+  }
+
+  .cat-sub{
+    font-family: 'Space Mono', monospace;
+    font-size: 11.5px;
+    color: var(--cream-dim);
+    letter-spacing: 0.04em;
+    margin: -14px 0 22px 2px;
+    opacity: 0.75;
+  }
+
+  .items{
+    display: grid;
+    gap: 2px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .item{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 15px 18px;
+    background: var(--card);
+    transition: background .15s ease;
+  }
+  .item:hover{ background: #34261c; }
+
+  .item-name{
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--cream);
+    white-space: nowrap;
+  }
+
+  .item-leader{
+    flex: 1;
+    border-bottom: 2px dotted rgba(243,233,220,0.22);
+    transform: translateY(-4px);
+    min-width: 12px;
+  }
+
+  .item-price{
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--gold);
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+  }
+
+  .item-price::before{
+    content: "₦";
+    margin-right: 1px;
+    opacity: 0.7;
+    font-weight: 400;
+  }
+
+  /* subtle highlight for big-ticket items */
+  .item.premium .item-price{ color: var(--paprika-bright); }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    margin-top: 56px;
+    padding: 34px 24px 10px;
+    text-align: center;
+    border-top: 1px solid var(--line);
+  }
+
+  .footer-brand{
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 18px;
+    color: var(--cream);
+  }
+  .footer-brand span{ color: var(--paprika-bright); }
+
+  .footer-note{
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--cream-dim);
+    letter-spacing: 0.05em;
+    margin-top: 10px;
+    opacity: 0.7;
+  }
+
+  @media (prefers-reduced-motion: no-preference){
+    .item{ animation: none; }
+  }
+
+  @media print{
+    body{ background: #fff; color:#000; }
+    .catnav{ display:none; }
+  }
+</style>
+</head>
+<body onload="document.getElementById('myLink').focus()">
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">Abuja &middot; Fresh Daily</div>
+    <h1 class="brand">AMALA<br><span>EXPRESS</span> BUKKA</h1>
+    <p class="tagline">Steaming soups, honest portions, no shortcuts on the pepper.</p>
+    <div class="hero-rule"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+
+  <nav class="catnav" aria-label="Menu categories">
+    <a href="#amala" id='myLink'>Amala Cuisine</a>
+    <a href="#soups">Soups</a>
+    <a href="#main">Main Course</a>
+    <a href="#protein">Protein</a>
+  </nav>
+
+  <section class="category" id="amala">
+    <div class="cat-head">
+      <span class="cat-num">01</span>
+      <h2 class="cat-title">Amala Cuisine</h2>
+    </div>
+    <p class="cat-sub">SWALLOW &middot; MADE FRESH TO ORDER</p>
+    <div class="items">
+      <div class="item"><span class="item-name">Amala</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item"><span class="item-name">Plantain Amala</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item"><span class="item-name">Poundo</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item"><span class="item-name">Eba</span><span class="item-leader"></span><span class="item-price">860</span></div>
+    </div>
+  </section>
+
+  <section class="category" id="soups">
+    <div class="cat-head">
+      <span class="cat-num">02</span>
+      <h2 class="cat-title">Soups</h2>
+    </div>
+    <p class="cat-sub">RICH &middot; SLOW-SIMMERED</p>
+    <div class="items">
+      <div class="item"><span class="item-name">Egusi</span><span class="item-leader"></span><span class="item-price">1,700</span></div>
+      <div class="item"><span class="item-name">Okro</span><span class="item-leader"></span><span class="item-price">1,700</span></div>
+      <div class="item"><span class="item-name">Vegetable (Efo Riro)</span><span class="item-leader"></span><span class="item-price">1,700</span></div>
+    </div>
+  </section>
+
+  <section class="category" id="main">
+    <div class="cat-head">
+      <span class="cat-num">03</span>
+      <h2 class="cat-title">Main Course</h2>
+    </div>
+    <p class="cat-sub">RICE, PLANTAIN &amp; SIDES</p>
+    <div class="items">
+      <div class="item"><span class="item-name">Jollof Rice</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
+      <div class="item"><span class="item-name">Fried Rice</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
+      <div class="item"><span class="item-name">Asun Rice</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
+      <div class="item"><span class="item-name">Ofada Rice</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
+      <div class="item"><span class="item-name">Ofada Sauce</span><span class="item-leader"></span><span class="item-price">2,500</span></div>
+      <div class="item"><span class="item-name">Chinese Rice</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
+      <div class="item"><span class="item-name">Rice &amp; Beans</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
+      <div class="item"><span class="item-name">White Rice</span><span class="item-leader"></span><span class="item-price">1,300</span></div>
+      <div class="item"><span class="item-name">Oil Beans</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item"><span class="item-name">Spaghetti</span><span class="item-leader"></span><span class="item-price">2,000</span></div>
+      <div class="item"><span class="item-name">Moi Moi</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item"><span class="item-name">Dodo (Plantain)</span><span class="item-leader"></span><span class="item-price">550</span></div>
+      <div class="item"><span class="item-name">Salad</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+    </div>
+  </section>
+
+  <section class="category" id="protein">
+    <div class="cat-head">
+      <span class="cat-num">04</span>
+      <h2 class="cat-title">Protein</h2>
+    </div>
+    <p class="cat-sub">MEAT &amp; FISH &middot; SOLD PER PORTION</p>
+    <div class="items">
+      <div class="item"><span class="item-name">Assorted</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item"><span class="item-name">Ponmo</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item premium"><span class="item-name">Goatmeat</span><span class="item-leader"></span><span class="item-price">3,800</span></div>
+      <div class="item"><span class="item-name">Cowleg</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
+      <div class="item premium"><span class="item-name">Big Turkey</span><span class="item-leader"></span><span class="item-price">7,000</span></div>
+      <div class="item premium"><span class="item-name">Medium Turkey</span><span class="item-leader"></span><span class="item-price">5,000</span></div>
+      <div class="item"><span class="item-name">Cow Head</span><span class="item-leader"></span><span class="item-price">1,650</span></div>
+      <div class="item premium"><span class="item-name">Chicken</span><span class="item-leader"></span><span class="item-price">4,500</span></div>
+      <div class="item premium"><span class="item-name">Meluza Fish</span><span class="item-leader"></span><span class="item-price">4,300</span></div>
+      <div class="item premium"><span class="item-name">Titus Fish</span><span class="item-leader"></span><span class="item-price">4,300</span></div>
+      <div class="item premium"><span class="item-name">Boiled Titus</span><span class="item-leader"></span><span class="item-price">4,300</span></div>
+      <div class="item"><span class="item-name">Dryfish</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
+      <div class="item"><span class="item-name">Panla Fish</span><span class="item-leader"></span><span class="item-price">1,300</span></div>
+      <div class="item"><span class="item-name">Fried Beef</span><span class="item-leader"></span><span class="item-price">1,650</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-brand">AMALA <span>EXPRESS</span> BUKKA</div>
+    <div class="footer-note">ALL MEALS SERVED FRESH</div>
+  </footer>
+
+</div>
+
+</body>
+</html>
