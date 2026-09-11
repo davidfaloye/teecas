@@ -21,6 +21,13 @@
     --cream: #f3e9dc;
     --cream-dim: #cbb9a5;
     --line: rgba(243,233,220,0.14);
+
+    --brand: var(--paprika);
+    --brand-dark: var(--paprika-bright);
+    --surface: var(--card);
+    --text: var(--cream);
+    --muted: var(--cream-dim);
+    --border: var(--line);
   }
 
   *{ box-sizing: border-box; }
@@ -222,8 +229,12 @@
     padding: 15px 18px;
     background: var(--card);
     transition: background .15s ease;
+    cursor: pointer;
+    user-select: none;
+
   }
   .item:hover{ background: #34261c; }
+  .item:active { transform: scale(0.98); }
 
   .item-name{
     font-size: 16px;
@@ -290,6 +301,179 @@
     body{ background: #fff; color:#000; }
     .catnav{ display:none; }
   }
+
+  /* Floating plate icon */
+  .plate-fab {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: var(--brand);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: pointer;
+    z-index: 500;
+    border: none;
+  }
+  .plate-badge {
+    position: absolute;
+        font-family: 'Space Mono', monospace;
+
+    top: -4px;
+    right: -4px;
+    background: var(--gold);
+    color: var(--bg);
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+  }
+
+  /* Fly-away animation clone */
+  .fly-clone {
+    position: fixed;
+    pointer-events: none;
+    z-index: 600;
+    background: var(--surface);
+    border: 0px solid var(--brand);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--brand-dark);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: transform 1.25s cubic-bezier(.2,.8,.2,1), opacity 1.1s ease-in;
+    opacity: 1;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 700;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    width: 100%;
+    max-width: 480px;
+    border-radius: 16px 16px 0 0;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.25s ease-out;
+        font-family: 'Archivo Black', sans-serif;
+
+  }
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-header {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Fraunces', serif;
+  }
+  .modal-header h2 { font-size: 16px; margin: 0; }
+  .modal-close {font-family: 'Space Mono', monospace; background: none; border: none; font-weight: bold; font-size: 40px; cursor: pointer; color: var(--cream); }
+  .modal-body {
+    padding: 12px 18px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .empty-state {
+    text-align: center;
+    color: var(--muted);
+    padding: 40px 10px;
+    font-size: 14px;
+    font-family: 'Fraunces', serif;
+  }
+  .order-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .order-row:last-child { border-bottom: none; }
+  .order-info { flex: 1; }
+  .order-name { font-weight: 600; font-size: 14px; }
+  .order-sub { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'Space Mono', monospace; }
+  .qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .qty-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cream);
+  }
+  .qty-val { min-width: 16px; text-align: center; font-size: 14px; font-weight: 600; font-family: 'Space Mono', monospace; }
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--cream-dim);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 6px;
+    font-weight: bold;
+  }
+  .modal-footer {
+    padding: 14px 18px 18px;
+    border-top: 1px solid var(--border);
+  }
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-family: 'Fraunces', serif;
+
+  }
+  .place-order-btn {
+    width: 100%;
+    background: var(--brand);
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .place-order-btn:disabled {
+    background: var(--bg-2);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
 </style>
 </head>
 <body>
@@ -298,7 +482,7 @@
 
   <div class="hero">
     <div class="eyebrow">Menu</div>
-      <h1 class="brand">TEECAS AMALA<br><span>EXPRESS</span> BUKKA</h1>
+    <h1 class="brand">TEECAS AMALA<br><span>EXPRESS</span> BUKKA</h1>
     <p class="tagline">The best Amala spot in Benin City.</p>
     <div class="hero-rule"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </div>
@@ -310,17 +494,17 @@
     <a href="#protein">Protein</a>
   </nav>
 
-  <section class="category" id="amala">
+<section class="category" id="amala">
     <div class="cat-head">
       <span class="cat-num">01</span>
       <h2 class="cat-title">Amala Cuisine</h2>
     </div>
     <p class="cat-sub">SWALLOW &middot; MADE FRESH TO ORDER</p>
     <div class="items">
-      <div class="item"><span class="item-name">Amala</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
-      <div class="item"><span class="item-name">Plantain Amala</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
-      <div class="item"><span class="item-name">Poundo</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
-      <div class="item"><span class="item-name">Eba</span><span class="item-leader"></span><span class="item-price">860</span></div>
+      <div class="item" data-name="Amala" data-price="1075"><span class="item-name">Amala</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item" data-name="Plantain Amala" data-price="1075"><span class="item-name">Plantain Amala</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item" data-name="Poundo" data-price="1075"><span class="item-name">Poundo</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item" data-name="Eba" data-price="860"><span class="item-name">Eba</span><span class="item-leader"></span><span class="item-price">860</span></div>
     </div>
   </section>
 
@@ -331,9 +515,9 @@
     </div>
     <p class="cat-sub">RICH &middot; SLOW-SIMMERED</p>
     <div class="items">
-      <div class="item"><span class="item-name">Egusi</span><span class="item-leader"></span><span class="item-price">1,700</span></div>
-      <div class="item"><span class="item-name">Okro</span><span class="item-leader"></span><span class="item-price">1,700</span></div>
-      <div class="item"><span class="item-name">Vegetable (Efo Riro)</span><span class="item-leader"></span><span class="item-price">1,700</span></div>
+      <div class="item" data-name="Egusi" data-price="1700"><span class="item-name">Egusi</span><span class="item-leader"></span><span class="item-price">1,700</span></div>
+      <div class="item" data-name="Okro" data-price="1700"><span class="item-name">Okro</span><span class="item-leader"></span><span class="item-price">1,700</span></div>
+      <div class="item" data-name="Vegetable (Efo Riro)" data-price="1700"><span class="item-name">Vegetable (Efo Riro)</span><span class="item-leader"></span><span class="item-price">1,700</span></div>
     </div>
   </section>
 
@@ -344,19 +528,19 @@
     </div>
     <p class="cat-sub">RICE, PLANTAIN &amp; SIDES</p>
     <div class="items">
-      <div class="item"><span class="item-name">Jollof Rice</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
-      <div class="item"><span class="item-name">Fried Rice</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
-      <div class="item"><span class="item-name">Asun Rice</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
-      <div class="item"><span class="item-name">Ofada Rice</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
-      <div class="item"><span class="item-name">Ofada Sauce</span><span class="item-leader"></span><span class="item-price">2,500</span></div>
-      <div class="item"><span class="item-name">Chinese Rice</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
-      <div class="item"><span class="item-name">Rice &amp; Beans</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
-      <div class="item"><span class="item-name">White Rice</span><span class="item-leader"></span><span class="item-price">1,300</span></div>
-      <div class="item"><span class="item-name">Oil Beans</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
-      <div class="item"><span class="item-name">Spaghetti</span><span class="item-leader"></span><span class="item-price">2,000</span></div>
-      <div class="item"><span class="item-name">Moi Moi</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
-      <div class="item"><span class="item-name">Dodo (Plantain)</span><span class="item-leader"></span><span class="item-price">550</span></div>
-      <div class="item"><span class="item-name">Salad</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item" data-name="Jollof Rice" data-price="2150"><span class="item-name">Jollof Rice</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
+      <div class="item" data-name="Fried Rice" data-price="2150"><span class="item-name">Fried Rice</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
+      <div class="item" data-name="Asun Rice" data-price="2700"><span class="item-name">Asun Rice</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
+      <div class="item" data-name="Ofada Rice" data-price="2150"><span class="item-name">Ofada Rice</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
+      <div class="item" data-name="Ofada Sauce" data-price="2500"><span class="item-name">Ofada Sauce</span><span class="item-leader"></span><span class="item-price">2,500</span></div>
+      <div class="item" data-name="Chinese Rice" data-price="2700"><span class="item-name">Chinese Rice</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
+      <div class="item" data-name="Rice &amp; Beans" data-price="2150"><span class="item-name">Rice &amp; Beans</span><span class="item-leader"></span><span class="item-price">2,150</span></div>
+      <div class="item" data-name="White Rice" data-price="1300"><span class="item-name">White Rice</span><span class="item-leader"></span><span class="item-price">1,300</span></div>
+      <div class="item" data-name="Oil Beans" data-price="1075"><span class="item-name">Oil Beans</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item" data-name="Spaghetti" data-price="2000"><span class="item-name">Spaghetti</span><span class="item-leader"></span><span class="item-price">2,000</span></div>
+      <div class="item" data-name="Moi Moi" data-price="1075"><span class="item-name">Moi Moi</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item" data-name="Dodo (Plantain)" data-price="550"><span class="item-name">Dodo (Plantain)</span><span class="item-leader"></span><span class="item-price">550</span></div>
+      <div class="item" data-name="Salad" data-price="1075"><span class="item-name">Salad</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
     </div>
   </section>
 
@@ -367,20 +551,20 @@
     </div>
     <p class="cat-sub">MEAT &amp; FISH &middot; SOLD PER PORTION</p>
     <div class="items">
-      <div class="item"><span class="item-name">Assorted</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
-      <div class="item"><span class="item-name">Ponmo</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
-      <div class="item premium"><span class="item-name">Goatmeat</span><span class="item-leader"></span><span class="item-price">3,800</span></div>
-      <div class="item"><span class="item-name">Cowleg</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
-      <div class="item premium"><span class="item-name">Big Turkey</span><span class="item-leader"></span><span class="item-price">7,000</span></div>
-      <div class="item premium"><span class="item-name">Medium Turkey</span><span class="item-leader"></span><span class="item-price">5,000</span></div>
-      <div class="item"><span class="item-name">Cow Head</span><span class="item-leader"></span><span class="item-price">1,650</span></div>
-      <div class="item premium"><span class="item-name">Chicken</span><span class="item-leader"></span><span class="item-price">4,500</span></div>
-      <div class="item premium"><span class="item-name">Meluza Fish</span><span class="item-leader"></span><span class="item-price">4,300</span></div>
-      <div class="item premium"><span class="item-name">Titus Fish</span><span class="item-leader"></span><span class="item-price">4,300</span></div>
-      <div class="item premium"><span class="item-name">Boiled Titus</span><span class="item-leader"></span><span class="item-price">4,300</span></div>
-      <div class="item"><span class="item-name">Dryfish</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
-      <div class="item"><span class="item-name">Panla Fish</span><span class="item-leader"></span><span class="item-price">1,300</span></div>
-      <div class="item"><span class="item-name">Fried Beef</span><span class="item-leader"></span><span class="item-price">1,650</span></div>
+      <div class="item" data-name="Assorted" data-price="1075"><span class="item-name">Assorted</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item" data-name="Ponmo" data-price="1075"><span class="item-name">Ponmo</span><span class="item-leader"></span><span class="item-price">1,075</span></div>
+      <div class="item premium" data-name="Goatmeat" data-price="3800"><span class="item-name">Goatmeat</span><span class="item-leader"></span><span class="item-price">3,800</span></div>
+      <div class="item" data-name="Cowleg" data-price="2700"><span class="item-name">Cowleg</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
+      <div class="item premium" data-name="Big Turkey" data-price="7000"><span class="item-name">Big Turkey</span><span class="item-leader"></span><span class="item-price">7,000</span></div>
+      <div class="item premium" data-name="Medium Turkey" data-price="5000"><span class="item-name">Medium Turkey</span><span class="item-leader"></span><span class="item-price">5,000</span></div>
+      <div class="item" data-name="Cow Head" data-price="1650"><span class="item-name">Cow Head</span><span class="item-leader"></span><span class="item-price">1,650</span></div>
+      <div class="item premium" data-name="Chicken" data-price="4500"><span class="item-name">Chicken</span><span class="item-leader"></span><span class="item-price">4,500</span></div>
+      <div class="item premium" data-name="Meluza Fish" data-price="4300"><span class="item-name">Meluza Fish</span><span class="item-leader"></span><span class="item-price">4,300</span></div>
+      <div class="item premium" data-name="Titus Fish" data-price="4300"><span class="item-name">Titus Fish</span><span class="item-leader"></span><span class="item-price">4,300</span></div>
+      <div class="item premium" data-name="Boiled Titus" data-price="4300"><span class="item-name">Boiled Titus</span><span class="item-leader"></span><span class="item-price">4,300</span></div>
+      <div class="item" data-name="Dryfish" data-price="2700"><span class="item-name">Dryfish</span><span class="item-leader"></span><span class="item-price">2,700</span></div>
+      <div class="item" data-name="Panla Fish" data-price="1300"><span class="item-name">Panla Fish</span><span class="item-leader"></span><span class="item-price">1,300</span></div>
+      <div class="item" data-name="Fried Beef" data-price="1650"><span class="item-name">Fried Beef</span><span class="item-leader"></span><span class="item-price">1,650</span></div>
     </div>
   </section>
 
@@ -391,6 +575,199 @@
   </footer>
 
 </div>
+
+<button class="plate-fab" id="plateFab" aria-label="View order">
+  🍽️
+  <span class="plate-badge" id="plateBadge">0</span>
+</button>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Your order</h2>
+      <button class="modal-close" id="modalClose" aria-label="Close">
+        <svg width="28px" height="28px" viewBox="0 0 25.00 25.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M3 21.32L21 3.32001" stroke="#f3e9dc" stroke-width="2.45" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M3 3.32001L21 21.32" stroke="#f3e9dc" stroke-width="2.45" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <div class="total-row">
+        <span>Total</span>
+        <span id="totalAmount" style="font-family: 'Space Mono', monospace;">&#8358;0</span>
+      </div>
+      <button class="place-order-btn" id="placeOrderBtn">Place order now &#x27F6;</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var WHATSAPP_NUMBER = "2348088524502";
+  var order = []; // { name, price, qty }
+
+  var plateFab = document.getElementById('plateFab');
+  var plateBadge = document.getElementById('plateBadge');
+  var modalOverlay = document.getElementById('modalOverlay');
+  var modalClose = document.getElementById('modalClose');
+  var modalBody = document.getElementById('modalBody');
+  var totalAmount = document.getElementById('totalAmount');
+  var placeOrderBtn = document.getElementById('placeOrderBtn');
+
+  function formatNaira(n) {
+    return '\u20A6' + n.toLocaleString();
+  }
+
+  function findItem(name, price) {
+    for (var i = 0; i < order.length; i++) {
+      if (order[i].name === name && order[i].price === price) return order[i];
+    }
+    return null;
+  }
+
+  function addToOrder(name, price) {
+    var existing = findItem(name, price);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      order.push({ name: name, price: price, qty: 1 });
+    }
+    updateBadge();
+  }
+
+  function changeQty(name, price, delta) {
+    var item = findItem(name, price);
+    if (!item) return;
+    item.qty += delta;
+    if (item.qty <= 0) {
+      order = order.filter(function (o) { return !(o.name === name && o.price === price); });
+    }
+    updateBadge();
+    renderModal();
+  }
+
+  function removeItem(name, price) {
+    order = order.filter(function (o) { return !(o.name === name && o.price === price); });
+    updateBadge();
+    renderModal();
+  }
+
+  function updateBadge() {
+    var count = order.reduce(function (sum, o) { return sum + o.qty; }, 0);
+    plateBadge.textContent = count;
+  }
+
+  function renderModal() {
+    modalBody.innerHTML = '';
+    if (order.length === 0) {
+      modalBody.innerHTML = '<div class="empty-state">Click on any food on the menu to place an order.</div>';
+      totalAmount.textContent = formatNaira(0);
+      placeOrderBtn.disabled = true;
+      return;
+    }
+    placeOrderBtn.disabled = false;
+    var total = 0;
+    order.forEach(function (item) {
+      total += item.price * item.qty;
+      var row = document.createElement('div');
+      row.className = 'order-row';
+      row.innerHTML =
+        '<div class="order-info">' +
+          '<div class="order-name">' + item.name + '</div>' +
+          '<div class="order-sub">' + formatNaira(item.price) + ' &times; ' + item.qty + '</div>' +
+        '</div>' +
+        '<div class="qty-controls">' +
+          '<button class="qty-btn minus">-</button>' +
+          '<span class="qty-val">' + item.qty + '</span>' +
+          '<button class="qty-btn plus">+</button>' +
+        '</div>' +
+        '<button class="remove-btn" aria-label="Remove">&#10005;</button>';
+
+      row.querySelector('.minus').addEventListener('click', function () {
+        changeQty(item.name, item.price, -1);
+      });
+      row.querySelector('.plus').addEventListener('click', function () {
+        changeQty(item.name, item.price, 1);
+      });
+      row.querySelector('.remove-btn').addEventListener('click', function () {
+        removeItem(item.name, item.price);
+      });
+
+      modalBody.appendChild(row);
+    });
+    totalAmount.textContent = formatNaira(total);
+  }
+
+  function openModal() {
+    renderModal();
+    modalOverlay.classList.add('open');
+  }
+  function closeModal() {
+    modalOverlay.classList.remove('open');
+  }
+
+  plateFab.addEventListener('click', openModal);
+  modalClose.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', function (e) {
+    if (e.target === modalOverlay) closeModal();
+  });
+
+  // Fly-up animation from clicked item to the plate icon
+  function animateFly(sourceEl, name, price) {
+    var rect = sourceEl.getBoundingClientRect();
+    var plateRect = plateFab.getBoundingClientRect();
+
+    var clone = document.createElement('div');
+    clone.className = 'fly-clone';
+    clone.textContent = name;
+    clone.style.left = rect.left + 'px';
+    clone.style.top = rect.top + 'px';
+    clone.style.width = rect.width + 'px';
+    document.body.appendChild(clone);
+
+    var targetX = plateRect.left + plateRect.width / 2 - (rect.left + rect.width / 2);
+    var targetY = plateRect.top + plateRect.height / 2 - (rect.top + rect.height / 2);
+
+    requestAnimationFrame(function () {
+      clone.style.transform = 'translate(' + targetX + 'px, ' + (targetY - 40) + 'px) scale(0.5)';
+      clone.style.opacity = '0';
+    });
+
+    setTimeout(function () {
+      clone.remove();
+    }, 1200);
+
+    // small bounce feedback on the plate
+    plateFab.style.transition = 'transform 0.15s';
+    plateFab.style.transform = 'scale(1.15)';
+    setTimeout(function () { plateFab.style.transform = 'scale(1)'; }, 150);
+  }
+
+  document.querySelectorAll('.item').forEach(function (el) {
+    el.addEventListener('click', function () {
+      var name = el.getAttribute('data-name');
+      var price = parseInt(el.getAttribute('data-price'), 10);
+      addToOrder(name, price);
+      animateFly(el, name, price);
+    });
+  });
+
+  placeOrderBtn.addEventListener('click', function () {
+    if (order.length === 0) return;
+    var lines = order.map(function (o) {
+      return o.name + ' -- x' + o.qty+'\n';
+    });
+    //var total = order.reduce(function (sum, o) { return sum + o.price * o.qty; }, 0);
+    var pre_message =
+      "Hello, I'd like to place an order for:\n\n" +
+      lines.join('\n');
+
+    var url = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(pre_message);
+    window.open(url, '_blank');
+  });
+
+  updateBadge();
+})();
+</script>
 
 </body>
 </html>
