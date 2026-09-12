@@ -789,7 +789,7 @@
   placeOrderBtn.addEventListener('click', function () {
     if (order.length === 0) return;
     var lines = order.map(function (o) {
-      return o.name + ' -- x' + o.qty+'\n';
+      return o.name + ' ~ ' + o.qty+'\n';
     });
     //var total = order.reduce(function (sum, o) { return sum + o.price * o.qty; }, 0);
     var pre_message =
