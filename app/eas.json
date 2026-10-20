@@ -5,11 +5,11 @@
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "env": { "EXPO_PUBLIC_API_URL": "https://your-admin.onrender.com" }
+      "env": { "EXPO_PUBLIC_API_URL": "https://admin.teecas.online" }
     },
     "production": {
       "autoIncrement": true,
-      "env": { "EXPO_PUBLIC_API_URL": "https://your-admin.onrender.com" }
+      "env": { "EXPO_PUBLIC_API_URL": "https://admin.teecas.online" }
     }
   },
   "submit": { "production": {} }

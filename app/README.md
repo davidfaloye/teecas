@@ -2,7 +2,7 @@
 
 The Teecas Amala Express Bukka app for Android and iOS, in the same paprika, gold and cream look as teecas.online. Built with Expo (SDK 58) and Expo Router.
 
-Customers pick a branch, browse the menu, build an order, choose delivery or pickup, and place it. Payment is **pay on delivery** (cash, transfer or POS). The order goes to the Teecas admin and WhatsApp opens with it pre-written to that branch's number, as the website does now. The customer can then follow the order as the kitchen moves it along.
+Customers pick a branch, browse the menu, build an order, choose delivery or pickup, and place it. Payment is **pay on delivery** (cash, transfer or POS). The order goes to the Teecas admin ([teecas-admin](https://github.com/davidfaloye/teecas-admin)) and WhatsApp opens with it pre-written to that branch's number, as the website does now. The customer can then follow the order as the kitchen moves it along.
 
 Screens: welcome and branch picker · menu (popular dishes, category tabs, sold-out badges) · your order · checkout · order tracking · my orders.
 
@@ -20,7 +20,7 @@ With no API configured the app runs in **demo mode**: the built-in Teecas menu a
 
 ```bash
 cp .env.example .env
-# set EXPO_PUBLIC_API_URL to the admin's URL, e.g. https://teecas-admin.onrender.com
+# set EXPO_PUBLIC_API_URL to the admin's URL, e.g. https://admin.teecas.online
 npx expo start --clear
 ```
 
