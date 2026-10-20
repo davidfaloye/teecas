@@ -1,0 +1,49 @@
+# Teecas ordering app
+
+The Teecas Amala Express Bukka app for Android and iOS, in the same paprika, gold and cream look as teecas.online. Built with Expo (SDK 58) and Expo Router.
+
+Customers pick a branch, browse the menu, build an order, choose delivery or pickup, and place it. Payment is **pay on delivery** (cash, transfer or POS). The order goes to the Teecas admin and WhatsApp opens with it pre-written to that branch's number, as the website does now. The customer can then follow the order as the kitchen moves it along.
+
+Screens: welcome and branch picker · menu (popular dishes, category tabs, sold-out badges) · your order · checkout · order tracking · my orders.
+
+## Show it to the client
+
+```bash
+cd app
+npm install
+npx expo start
+```
+
+Scan the QR code with Expo Go on a phone.
+
+With no API configured the app runs in **demo mode**: the built-in Teecas menu and three sample branches, and orders go to WhatsApp only (a banner says so). To connect it to the admin, so orders appear on the admin board and tracking is live:
+
+```bash
+cp .env.example .env
+# set EXPO_PUBLIC_API_URL to the admin's URL, e.g. https://teecas-admin.onrender.com
+npx expo start --clear
+```
+
+## Build for the stores
+
+Builds run on EAS. Set the admin URL in `eas.json` (`EXPO_PUBLIC_API_URL` in the `preview` and `production` profiles), then:
+
+```bash
+npx eas-cli@latest build --profile preview --platform android   # installable APK to share
+npx eas-cli@latest build --profile production --platform all     # store builds
+npx eas-cli@latest submit --platform all
+```
+
+App IDs are `com.cullinari.teecas` (Android package and iOS bundle identifier). Change them in `app.json` before the first store build if Teecas wants its own.
+
+Apple expects apps made for a client to be published from the client's own Apple Developer account ($99 a year), so Teecas should open one and add you to it. Google Play is $25 once. Allow a few days for the first store review.
+
+Menu, prices, sold-out dishes and branch details all come from the admin, so they change without a new release. Small code fixes can go out as over-the-air updates with `eas update`.
+
+## Code layout
+
+- `src/app/`: screens (Expo Router). `index` is the branch picker, then `menu`, `cart`, `checkout`, `order/[id]`, `orders`.
+- `src/api.ts`: calls to the admin API, plus demo mode.
+- `src/store.tsx`: branch, cart, saved customer details and past orders, kept on the phone.
+- `src/theme.ts`: colours and fonts from teecas.online.
+- `src/demo.ts`: built-in sample menu and branches.
