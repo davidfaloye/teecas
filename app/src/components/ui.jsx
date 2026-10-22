@@ -6,10 +6,17 @@ import { colors, fonts, radius } from '../theme';
 
 export const tap = () => Haptics.selectionAsync().catch(() => {});
 
-// Text in the app's type styles. variant: one of the keys of `text` below.
-export function T({ children, style, variant = 'body', numberOfLines }) {
+// Text in the app's type styles. variant: one of the keys of `text` below. onPress makes it a
+// tappable link (e.g. inside a sentence).
+export function T({ children, style, variant = 'body', numberOfLines, onPress }) {
   return (
-    <Text style={[text[variant] || text.body, style]} numberOfLines={numberOfLines} maxFontSizeMultiplier={1.4}>
+    <Text
+      style={[text[variant] || text.body, style]}
+      numberOfLines={numberOfLines}
+      maxFontSizeMultiplier={1.4}
+      onPress={onPress}
+      accessibilityRole={onPress ? 'link' : undefined}
+    >
       {children}
     </Text>
   );

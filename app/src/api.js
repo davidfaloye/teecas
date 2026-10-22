@@ -36,7 +36,8 @@ export function friendlyError(err) {
 
 const TIMEOUT_MS = 30000; // Render can take a while to wake the admin up.
 
-async function request(path, { method = 'GET', body, query } = {}) {
+// auth: a signed-in customer's token. Sent when present; guests send nothing.
+async function request(path, { method = 'GET', body, query, auth } = {}) {
   const qs = query
     ? '?' +
       Object.entries(query)
@@ -62,6 +63,7 @@ async function request(path, { method = 'GET', body, query } = {}) {
         // Never serve a cached order status.
         'Cache-Control': 'no-cache',
         Pragma: 'no-cache',
+        ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
@@ -191,11 +193,13 @@ export async function fetchMenu() {
 }
 
 // Orders are for delivery and carry no branch: Teecas assigns one when it accepts the order.
-// input: { customer: {name, phone, address}, note, lines: [{ item, qty }], pushToken? }
+// input: { customer: {name, phone, address}, note, lines: [{ item, qty }], pushToken?, auth? }
+// With auth (a signed-in customer's token) the order is saved to their account.
 export async function placeOrder(input) {
   if (DEMO_MODE) return placeDemoOrder(input);
   const d = await request('/orders', {
     method: 'POST',
+    auth: input.auth || undefined,
     body: {
       fulfilment: 'delivery',
       customer: input.customer,
@@ -223,6 +227,67 @@ export async function setOrderPush(id, token, pushToken) {
   if (DEMO_MODE || !id || !token) return;
   await request(`/orders/${encodeURIComponent(id)}/push`, { method: 'PUT', query: { token }, body: { pushToken: pushToken || null } });
 }
+
+// ---------------------------------------------------------------------------
+// Customer accounts: phone number + password. Guests can still order without one.
+
+export function normalizeCustomer(c) {
+  if (!c || typeof c !== 'object' || !c.id) return null;
+  return { id: text(c.id), name: text(c.name), phone: text(c.phone), address: text(c.address) };
+}
+
+function accountsOff() {
+  return new ApiError('Accounts need the Teecas server. This preview runs on sample data.', 'DEMO_MODE');
+}
+
+function session(d) {
+  const customer = normalizeCustomer(d.customer);
+  if (!d.token || !customer) throw new ApiError("We couldn't sign you in. Try again in a moment.", 'BAD_RESPONSE');
+  return { token: text(d.token), customer, claimed: Number(d.claimed) || 0 };
+}
+
+// claim: [{ id, token }] guest orders on this phone to move into the account.
+export async function signUp({ name, phone, password, address, claim }) {
+  if (DEMO_MODE) throw accountsOff();
+  return session(await request('/account/signup', { method: 'POST', body: { name, phone, password, address, claim } }));
+}
+
+export async function signIn({ phone, password, claim }) {
+  if (DEMO_MODE) throw accountsOff();
+  return session(await request('/account/signin', { method: 'POST', body: { phone, password, claim } }));
+}
+
+export async function fetchMe(auth) {
+  const d = await request('/account/me', { auth, query: { _: Date.now() } });
+  const customer = normalizeCustomer(d.customer);
+  if (!customer) throw new ApiError("We couldn't load your account. Try again in a moment.", 'BAD_RESPONSE');
+  return customer;
+}
+
+export async function updateMe(auth, patch) {
+  const d = await request('/account/me', { method: 'PUT', auth, body: patch });
+  return normalizeCustomer(d.customer);
+}
+
+export async function deleteAccount(auth) {
+  await request('/account/me', { method: 'DELETE', auth });
+}
+
+// The signed-in customer's orders, newest first, from the database. before: createdAt of the
+// last order already shown, to load older ones.
+export async function fetchMyOrders(auth, { before, limit } = {}) {
+  const d = await request('/account/orders', { auth, query: { before, limit, _: Date.now() } });
+  return { orders: arr(d.orders).map(normalizeOrder).filter(Boolean), more: Boolean(d.more) };
+}
+
+export async function claimOrders(auth, orders) {
+  if (!orders?.length) return 0;
+  const d = await request('/account/claim', { method: 'POST', auth, body: { orders } });
+  return Number(d.claimed) || 0;
+}
+
+// The server no longer accepts this sign-in (expired, account deleted): sign out on the phone.
+export const isSignedOutError = (e) => e?.code === 'UNAUTHENTICATED';
 
 // ---- demo mode: same WhatsApp message the server writes ----
 

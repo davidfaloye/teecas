@@ -8,6 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { fetchMe, isSignedOutError } from '../api';
 import { configureNotifications, onNotificationTap, setNotificationsEnabled } from '../notifications';
 import { useOrderWatcher } from '../orderWatcher';
 import { StoreProvider, useStore } from '../store';
@@ -17,7 +18,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 configureNotifications();
 
 function Root() {
-  const { ready, settings, orders } = useStore();
+  const { ready, settings, orders, account, updateAccountCustomer, signOut } = useStore();
   const ordersRef = useRef(orders);
   useEffect(() => {
     ordersRef.current = orders;
@@ -45,6 +46,18 @@ function Root() {
   }, [settings.notifications]);
 
   useOrderWatcher();
+
+  // Once per launch: check the saved sign-in still works and pick up account changes. Signs out
+  // only when the server says the sign-in is no longer valid, never because the phone is offline.
+  const accountToken = account?.token;
+  useEffect(() => {
+    if (!ready || !accountToken) return;
+    fetchMe(accountToken)
+      .then(updateAccountCustomer)
+      .catch((e) => {
+        if (isSignedOutError(e)) signOut();
+      });
+  }, [ready, accountToken, updateAccountCustomer, signOut]);
 
   // Tapping an order notification opens that order.
   useEffect(() => {

@@ -1,22 +1,53 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Alert, AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DEMO_MODE, deleteAccount, friendlyError, isSignedOutError } from '../api';
 import { DEMO_WHATSAPP } from '../demo';
 import { Button, Card, Header, Notice, T, tap } from '../components/ui';
 import { hasPermission, notificationsAvailable } from '../notifications';
+import { localPhone } from '../phone';
 import { turnNotificationsOff, turnNotificationsOn } from '../pushSync';
 import { useStore } from '../store';
 import { colors, fonts, radius } from '../theme';
 
 export default function Settings() {
   const insets = useSafeAreaInsets();
-  const { settings, updateSettings, orders, updateOrder, setPushToken, customer, forgetDetails, replayTour } = useStore();
+  const { settings, updateSettings, orders, updateOrder, setPushToken, customer, forgetDetails, replayTour, account, signOut } = useStore();
   const [allowed, setAllowed] = useState(true);
   const [busy, setBusy] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [forgot, setForgot] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [accountError, setAccountError] = useState('');
+
+  function confirmDelete() {
+    Alert.alert(
+      'Delete your account?',
+      'Your sign-in and saved details are removed. Teecas keeps its record of past orders, but they won’t be linked to you any more. This can’t be undone.',
+      [
+        { text: 'Keep my account', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            setAccountError('');
+            try {
+              await deleteAccount(account.token);
+              signOut();
+            } catch (e) {
+              if (isSignedOutError(e)) signOut(); // already gone on the server
+              else setAccountError(friendlyError(e));
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ],
+    );
+  }
 
   const recheck = useCallback(() => {
     hasPermission().then(setAllowed);
@@ -89,6 +120,31 @@ export default function Settings() {
           </Card>
         </Section>
 
+        <Section title="Account">
+          <Card style={{ gap: 10 }}>
+            {account ? (
+              <>
+                <T variant="small">Signed in. Your orders are saved to your account and show on any phone you sign in on.</T>
+                <Detail k="Name" v={account.customer.name} />
+                <Detail k="Phone" v={localPhone(account.customer.phone)} />
+                {account.customer.address ? <Detail k="Saved address" v={account.customer.address} /> : null}
+                {accountError ? <Notice tone="bad">{accountError}</Notice> : null}
+                <Button label="Sign out" kind="ghost" onPress={signOut} />
+                <Button label="Delete my account" kind="quiet" onPress={confirmDelete} loading={deleting} />
+              </>
+            ) : DEMO_MODE ? (
+              <T variant="small">Accounts need the Teecas server. This preview runs on sample data.</T>
+            ) : (
+              <>
+                <T variant="small">Create an account to fill in checkout for you and keep your orders, even on a new phone.</T>
+                <Button label="Create an account" kind="gold" onPress={() => router.push('/signup')} />
+                <Button label="Sign in" kind="ghost" onPress={() => router.push('/signin')} />
+              </>
+            )}
+          </Card>
+        </Section>
+
+        {!account ? (
         <Section title="Your details">
           <Card style={{ gap: 10 }}>
             {hasDetails ? (
@@ -111,6 +167,7 @@ export default function Settings() {
             )}
           </Card>
         </Section>
+        ) : null}
 
         <Section title="About">
           <Card style={{ paddingVertical: 4 }}>

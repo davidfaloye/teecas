@@ -1,8 +1,15 @@
-// App state: cart, the customer's saved details, their past orders and app settings.
+// App state: cart, the customer's saved details, their past orders, their account and settings.
+//
+// Two lists of orders:
+//  - `orders`: orders placed on this phone, with their tracking tokens. These are the keys the
+//    phone needs to follow an order (and to move guest orders into an account on sign-in).
+//  - `myOrders`: a signed-in customer's orders as the server last returned them. This is a cache:
+//    My orders shows it straight away and refreshes it from the database (see useMyOrders.js).
 // Customers don't choose a branch: Teecas picks the branch that cooks and delivers each order when
 // it accepts it. Saved on the phone so the next visit picks up where they left off.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { localPhone } from './phone';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 const Ctx = createContext(null);
@@ -35,6 +42,20 @@ function cleanOrders(raw) {
   return raw.filter((o) => o && o.id).slice(0, MAX_ORDERS);
 }
 
+function cleanAccount(raw) {
+  const c = raw?.customer;
+  if (!raw || typeof raw.token !== 'string' || !raw.token || !c?.id) return null;
+  return { token: raw.token, customer: { id: String(c.id), name: String(c.name || ''), phone: String(c.phone || ''), address: String(c.address || '') } };
+}
+
+const EMPTY_MY_ORDERS = { list: [], more: false, fetchedAt: 0, customerId: '' };
+
+function cleanMyOrders(raw, account) {
+  // Only keep a cached list that belongs to the account that is signed in.
+  if (!account || !raw || raw.customerId !== account.customer.id || !Array.isArray(raw.list)) return EMPTY_MY_ORDERS;
+  return { list: raw.list.filter((o) => o && o.id), more: Boolean(raw.more), fetchedAt: 0, customerId: raw.customerId };
+}
+
 export function StoreProvider({ children }) {
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(true);
@@ -44,6 +65,8 @@ export function StoreProvider({ children }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [tourSeen, setTourSeen] = useState(0);
   const [pushToken, setPushToken] = useState('');
+  const [account, setAccount] = useState(null); // { token, customer } when signed in
+  const [myOrders, setMyOrdersState] = useState(EMPTY_MY_ORDERS);
   const loaded = useRef(false);
 
   useEffect(() => {
@@ -59,6 +82,10 @@ export function StoreProvider({ children }) {
         if (s.settings && typeof s.settings === 'object') setSettings({ ...DEFAULT_SETTINGS, ...s.settings });
         setTourSeen(Number(s.tourSeen) || 0);
         if (typeof s.pushToken === 'string') setPushToken(s.pushToken);
+        const acct = cleanAccount(s.account);
+        setAccount(acct);
+        // fetchedAt starts at 0 so the saved list shows at once and is refreshed on first open.
+        setMyOrdersState(cleanMyOrders(s.myOrders, acct));
       })
       .catch(() => {})
       .finally(() => {
@@ -69,8 +96,8 @@ export function StoreProvider({ children }) {
 
   useEffect(() => {
     if (!loaded.current) return;
-    AsyncStorage.setItem(KEY, JSON.stringify({ cart, customer, orders, settings, tourSeen, pushToken })).catch(() => {});
-  }, [cart, customer, orders, settings, tourSeen, pushToken]);
+    AsyncStorage.setItem(KEY, JSON.stringify({ cart, customer, orders, settings, tourSeen, pushToken, account, myOrders })).catch(() => {});
+  }, [cart, customer, orders, settings, tourSeen, pushToken, account, myOrders]);
 
   const add = useCallback((item) => {
     if (!item?.id) return;
@@ -154,6 +181,31 @@ export function StoreProvider({ children }) {
 
   const forgetDetails = useCallback(() => setCustomer({ name: '', phone: '', address: '' }), []);
 
+  // After sign-up or sign-in. Checkout is pre-filled from the account.
+  const startSession = useCallback(({ token, customer: c }) => {
+    setAccount({ token, customer: c });
+    setMyOrdersState({ ...EMPTY_MY_ORDERS, customerId: c.id });
+    setCustomer((cur) => ({ name: c.name || cur.name, phone: c.phone ? localPhone(c.phone) : cur.phone, address: c.address || cur.address }));
+  }, []);
+
+  const updateAccountCustomer = useCallback((c) => {
+    if (!c) return;
+    setAccount((a) => (a && a.customer.id === c.id ? { ...a, customer: c } : a));
+  }, []);
+
+  // Signing out keeps the orders placed on this phone (and their tracking) but drops the
+  // account's cached list, so the next person to use the phone doesn't see it.
+  const signOut = useCallback(() => {
+    setAccount(null);
+    setMyOrdersState(EMPTY_MY_ORDERS);
+  }, []);
+
+  // Save what the server returned for the signed-in account. Ignored if the customer signed out
+  // or switched accounts while the request was on its way.
+  const setMyOrders = useCallback((customerId, next) => {
+    setMyOrdersState((cur) => (cur.customerId === customerId ? { ...cur, ...next } : cur));
+  }, []);
+
   const value = useMemo(() => {
     const lines = Object.values(cart);
     return {
@@ -182,8 +234,15 @@ export function StoreProvider({ children }) {
       replayTour,
       pushToken,
       setPushToken,
+      account,
+      signedIn: Boolean(account),
+      startSession,
+      updateAccountCustomer,
+      signOut,
+      myOrders,
+      setMyOrders,
     };
-  }, [ready, open, cart, add, remove, setQty, clearCart, syncCart, markSoldOut, customer, forgetDetails, orders, saveOrder, updateOrder, settings, updateSettings, tourSeen, finishOnboarding, replayTour, pushToken]);
+  }, [ready, open, cart, add, remove, setQty, clearCart, syncCart, markSoldOut, customer, forgetDetails, orders, saveOrder, updateOrder, settings, updateSettings, tourSeen, finishOnboarding, replayTour, pushToken, account, startSession, updateAccountCustomer, signOut, myOrders, setMyOrders]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

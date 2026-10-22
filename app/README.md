@@ -35,6 +35,17 @@ npx expo start --clear
 
 Settings → Order updates turns both off (and tells the admin to stop pushing for open orders).
 
+## Accounts
+
+Customers can order as guests, or create an account with their phone number and a password (Settings, My orders, or the prompt at checkout). Accounts are only in this app; the admin's staff sign-in is separate and a customer account can't open it.
+
+- Signed in, **My orders** loads the account's orders from the admin's database, so they show on any phone. The list is cached in the store (and saved on the phone): it shows at once, refreshes from the server when it's over 30 seconds old or a new order was placed, refreshes every 20 seconds while an order is on its way, and always on pull-to-refresh. See `src/useMyOrders.js`.
+- Guest orders already on the phone move into the account on sign-up or sign-in (matched by their tracking tokens).
+- Settings has sign out and delete account (Apple requires in-app account deletion for apps that offer sign-up).
+- There's no "forgot password" yet: it needs a code sent by SMS or WhatsApp.
+
+The endpoints are documented in the teecas-admin README under "Customer accounts".
+
 ## Build for the stores
 
 Builds run on EAS. Set the admin URL in `eas.json` (`EXPO_PUBLIC_API_URL` in the `preview` and `production` profiles), then:

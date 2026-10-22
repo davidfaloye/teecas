@@ -1,22 +1,18 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { friendlyError, placeOrder } from '../api';
+import { DEMO_MODE, friendlyError, placeOrder } from '../api';
+import { Input } from '../components/Input';
 import { Row } from '../components/Row';
 import { Button, Card, Header, Notice, T } from '../components/ui';
 import { pushTokenForOrder } from '../notifications';
+import { validPhone } from '../phone';
 import { useStore } from '../store';
 import { colors, fonts, naira, radius } from '../theme';
 
-// Nigerian numbers: 0803 123 4567 or +234 803 123 4567.
-function validPhone(p) {
-  const d = String(p || '').replace(/[^\d]/g, '');
-  return (d.length === 11 && d.startsWith('0')) || (d.length === 13 && d.startsWith('234')) || (d.length >= 10 && d.length <= 15 && String(p).trim().startsWith('+'));
-}
-
 export default function Checkout() {
-  const { cart, subtotal, customer, setCustomer, clearCart, saveOrder, markSoldOut, open, settings, pushToken, setPushToken } = useStore();
+  const { cart, subtotal, customer, setCustomer, clearCart, saveOrder, markSoldOut, open, settings, pushToken, setPushToken, account } = useStore();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState(customer.name);
   const [phone, setPhone] = useState(customer.phone);
@@ -26,6 +22,18 @@ export default function Checkout() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const submitting = useRef(false); // stops a double tap placing two orders
+
+  // Signed in from the prompt above: fill in what's still empty from the account.
+  const accountId = account?.customer.id || '';
+  const [filledFor, setFilledFor] = useState(accountId);
+  if (accountId !== filledFor) {
+    setFilledFor(accountId);
+    if (accountId) {
+      if (!name) setName(customer.name);
+      if (!phone) setPhone(customer.phone);
+      if (!address) setAddress(customer.address);
+    }
+  }
   const lines = Object.values(cart).map(({ item, qty }) => ({ item, qty }));
   const soldOut = lines.filter((l) => !l.item.available);
 
@@ -65,7 +73,8 @@ export default function Checkout() {
         token = await pushTokenForOrder(pushToken);
         if (token && token !== pushToken) setPushToken(token);
       }
-      const placed = await placeOrder({ customer: details, note: note.trim(), lines, pushToken: token });
+      // Signed in: the order is saved to the account. (An expired sign-in is placed as a guest.)
+      const placed = await placeOrder({ customer: details, note: note.trim(), lines, pushToken: token, auth: account?.token });
       const waUrl = placed.whatsapp?.url || '';
       saveOrder({
         id: placed.order.id,
@@ -99,8 +108,18 @@ export default function Checkout() {
       <Header title="Checkout" subtitle="Delivery · pay on delivery" />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 130 }} keyboardShouldPersistTaps="handled">
+          {!account && !DEMO_MODE ? (
+            <Pressable accessibilityRole="button" onPress={() => router.push('/signin')} style={({ pressed }) => [s.signin, pressed && { opacity: 0.85 }]}>
+              <View style={{ flex: 1, gap: 2 }}>
+                <T variant="bold">Have an account? Sign in</T>
+                <T variant="muted">Your details fill in and your orders are saved, on any phone. Or carry on as a guest.</T>
+              </View>
+              <T style={{ color: colors.gold, fontFamily: fonts.medium, fontSize: 18 }}>›</T>
+            </Pressable>
+          ) : null}
           <Card style={{ gap: 14 }}>
             <T variant="h3">Your details</T>
+            {account ? <T variant="muted">Signed in as {account.customer.name}. This order is saved to your account.</T> : null}
             <Input
               label="Name"
               value={name}
@@ -189,31 +208,8 @@ export default function Checkout() {
   );
 }
 
-function Input({ label, error, multiline, ...props }) {
-  return (
-    <View style={{ gap: 6 }}>
-      <T variant="small" style={{ fontFamily: fonts.semibold }}>
-        {label}
-      </T>
-      <TextInput
-        placeholderTextColor={colors.muted}
-        selectionColor={colors.gold}
-        style={[s.input, multiline && { minHeight: 76, textAlignVertical: 'top' }, error ? { borderColor: colors.bad } : null]}
-        accessibilityLabel={label}
-        multiline={multiline}
-        {...props}
-      />
-      {error ? (
-        <T variant="small" style={{ color: colors.bad }}>
-          {error}
-        </T>
-      ) : null}
-    </View>
-  );
-}
-
 const s = StyleSheet.create({
-  input: { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 12, color: colors.cream, fontFamily: fonts.body, fontSize: 16 },
+  signin: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.gold + '66', backgroundColor: 'rgba(217,161,91,0.08)' },
   pay: { flexDirection: 'row', gap: 12, alignItems: 'center', padding: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.gold, backgroundColor: 'rgba(217,161,91,0.08)' },
   radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.gold },

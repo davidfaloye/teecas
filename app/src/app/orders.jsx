@@ -1,9 +1,14 @@
+// My orders. Signed in: the account's orders from the database (cached, see useMyOrders.js), so
+// they show on any phone. Guests: the orders placed on this phone, plus a prompt to sign in.
+
 import { router } from 'expo-router';
-import { FlatList, Pressable, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Header, T, styles } from '../components/ui';
+import { DEMO_MODE } from '../api';
+import { Button, Card, Header, Notice, T, styles } from '../components/ui';
 import { useStore } from '../store';
 import { colors, dayAndClock, naira } from '../theme';
+import { useMyOrders } from '../useMyOrders';
 
 const STATUS = {
   placed: ['Sent', colors.creamDim],
@@ -16,21 +21,44 @@ const STATUS = {
 };
 
 export default function MyOrders() {
-  const { orders } = useStore();
+  const { orders: phoneOrders } = useStore();
+  const mine = useMyOrders();
   const insets = useSafeAreaInsets();
+
+  const data = mine.signedIn ? mine.orders : phoneOrders;
+  const firstLoad = mine.signedIn && !mine.loaded;
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <Header title="My orders" subtitle="Orders placed on this phone" />
+      <Header title="My orders" subtitle={mine.signedIn ? 'Your account’s orders' : 'Orders placed on this phone'} />
       <FlatList
-        data={orders}
+        data={firstLoad ? [] : data}
         keyExtractor={(o) => String(o.id)}
         contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: insets.bottom + 24 }}
-        ListEmptyComponent={
-          <View style={{ gap: 14, marginTop: 30, alignItems: 'center' }}>
-            <T variant="small">You haven’t ordered yet.</T>
-            <Button label="See the menu" kind="gold" onPress={() => router.replace('/menu')} style={{ alignSelf: 'stretch' }} />
+        refreshControl={
+          mine.signedIn ? <RefreshControl refreshing={mine.loading && mine.loaded} onRefresh={mine.refresh} tintColor={colors.gold} /> : undefined
+        }
+        onEndReached={mine.signedIn ? mine.loadMore : undefined}
+        onEndReachedThreshold={0.4}
+        ListHeaderComponent={
+          <View style={{ gap: 10 }}>
+            {!mine.signedIn && !DEMO_MODE ? <SignInPrompt /> : null}
+            {mine.error ? <Notice tone="bad">{mine.loaded ? `Couldn't refresh: ${mine.error}` : mine.error}</Notice> : null}
           </View>
         }
+        ListEmptyComponent={
+          firstLoad && !mine.error ? (
+            <ActivityIndicator color={colors.gold} style={{ marginTop: 30 }} />
+          ) : firstLoad ? (
+            <Button label="Try again" kind="ghost" onPress={mine.refresh} style={{ marginTop: 10 }} />
+          ) : (
+            <View style={{ gap: 14, marginTop: 30, alignItems: 'center' }}>
+              <T variant="small">You haven’t ordered yet.</T>
+              <Button label="See the menu" kind="gold" onPress={() => router.replace('/menu')} style={{ alignSelf: 'stretch' }} />
+            </View>
+          )
+        }
+        ListFooterComponent={mine.loadingMore ? <ActivityIndicator color={colors.gold} style={{ marginVertical: 12 }} /> : null}
         renderItem={({ item: o }) => {
           const st = o.gone ? ['No longer available', colors.muted] : STATUS[o.lastStatus];
           return (
@@ -56,5 +84,18 @@ export default function MyOrders() {
         }}
       />
     </View>
+  );
+}
+
+function SignInPrompt() {
+  return (
+    <Card style={{ gap: 10, borderColor: colors.gold + '66' }}>
+      <T variant="bold">Keep your orders on any phone</T>
+      <T variant="small">Sign in or create an account. The orders below move into it, and checkout fills in for you.</T>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <Button label="Sign in" kind="gold" onPress={() => router.push('/signin')} style={{ flex: 1 }} />
+        <Button label="Create account" kind="ghost" onPress={() => router.push('/signup')} style={{ flex: 1 }} />
+      </View>
+    </Card>
   );
 }
