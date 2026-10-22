@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DEMO_MODE, deleteAccount, friendlyError, isSignedOutError } from '../api';
+import { deleteAccount, friendlyError, isSignedOutError } from '../api';
 import { DEMO_WHATSAPP } from '../demo';
 import { Button, Card, Header, Notice, T, tap } from '../components/ui';
 import { hasPermission, notificationsAvailable } from '../notifications';
@@ -133,8 +133,6 @@ export default function Settings() {
                 <Button label="Sign out" kind="ghost" onPress={signOut} />
                 <Button label="Delete my account" kind="quiet" onPress={confirmDelete} loading={deleting} />
               </>
-            ) : DEMO_MODE ? (
-              <T variant="small">Accounts need the Teecas server. This preview runs on sample data.</T>
             ) : (
               <>
                 <T variant="small">Create an account to fill in checkout for you and keep your orders, even on a new phone.</T>

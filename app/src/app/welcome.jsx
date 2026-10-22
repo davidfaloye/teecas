@@ -82,6 +82,14 @@ export default function Welcome() {
     router.replace('/menu');
   }
 
+  // From the last card: finish the tour and open sign-in or sign-up. Once signed in, the
+  // customer lands on the menu.
+  function account(path) {
+    tap();
+    finishOnboarding();
+    router.replace(path);
+  }
+
   function goTo(i) {
     const next = Math.max(0, Math.min(SLIDES.length - 1, i));
     list.current?.scrollToOffset({ offset: next * width, animated: true });
@@ -152,6 +160,18 @@ export default function Welcome() {
         ) : (
           <Button label="Next" onPress={() => goTo(index + 1)} />
         )}
+        {last ? (
+          <T variant="small" style={{ textAlign: 'center', marginTop: 4 }}>
+            Have an account?{' '}
+            <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }} onPress={() => account('/signin')}>
+              Sign in
+            </T>
+            {'  ·  '}
+            <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }} onPress={() => account('/signup')}>
+              Create one
+            </T>
+          </T>
+        ) : null}
       </View>
     </View>
   );

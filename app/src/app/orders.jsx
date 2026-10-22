@@ -4,7 +4,6 @@
 import { router } from 'expo-router';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DEMO_MODE } from '../api';
 import { Button, Card, Header, Notice, T, styles } from '../components/ui';
 import { useStore } from '../store';
 import { colors, dayAndClock, naira } from '../theme';
@@ -42,7 +41,7 @@ export default function MyOrders() {
         onEndReachedThreshold={0.4}
         ListHeaderComponent={
           <View style={{ gap: 10 }}>
-            {!mine.signedIn && !DEMO_MODE ? <SignInPrompt /> : null}
+            {!mine.signedIn ? <SignInPrompt /> : null}
             {mine.error ? <Notice tone="bad">{mine.loaded ? `Couldn't refresh: ${mine.error}` : mine.error}</Notice> : null}
           </View>
         }

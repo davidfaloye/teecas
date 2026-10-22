@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DEMO_MODE, friendlyError, placeOrder } from '../api';
+import { friendlyError, placeOrder } from '../api';
 import { Input } from '../components/Input';
 import { Row } from '../components/Row';
 import { Button, Card, Header, Notice, T } from '../components/ui';
@@ -108,7 +108,7 @@ export default function Checkout() {
       <Header title="Checkout" subtitle="Delivery · pay on delivery" />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 130 }} keyboardShouldPersistTaps="handled">
-          {!account && !DEMO_MODE ? (
+          {!account ? (
             <Pressable accessibilityRole="button" onPress={() => router.push('/signin')} style={({ pressed }) => [s.signin, pressed && { opacity: 0.85 }]}>
               <View style={{ flex: 1, gap: 2 }}>
                 <T variant="bold">Have an account? Sign in</T>
