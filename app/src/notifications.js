@@ -10,11 +10,33 @@
 // Settings → Notifications turns both off.
 
 import Constants from 'expo-constants';
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 export const CHANNEL_ID = 'orders';
-const supported = Platform.OS === 'ios' || Platform.OS === 'android';
+
+// Expo Go on Android ships without part of expo-notifications (since SDK 53), and just importing
+// the library there throws "Cannot find native module 'ExpoTopicSubscriptionModule'". So it is
+// loaded lazily, only where it works: iOS (Expo Go or a build) and Android development or store
+// builds. Everywhere else the functions below quietly do nothing and the app keeps working.
+const inExpoGo = Constants.executionEnvironment === 'storeClient';
+let lib; // undefined: not loaded yet; null: not available here
+function N() {
+  if (lib !== undefined) return lib;
+  lib = null;
+  if (Platform.OS !== 'ios' && Platform.OS !== 'android') return lib;
+  if (Platform.OS === 'android' && inExpoGo) return lib;
+  try {
+    lib = require('expo-notifications');
+  } catch {
+    lib = null;
+  }
+  return lib;
+}
+
+// False in Expo Go on Android and on web; Settings explains why.
+export function notificationsAvailable() {
+  return Boolean(N());
+}
 
 let enabled = true;
 export function setNotificationsEnabled(v) {
@@ -22,7 +44,8 @@ export function setNotificationsEnabled(v) {
 }
 
 export function configureNotifications() {
-  if (!supported) return;
+  const Notifications = N();
+  if (!Notifications) return;
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: enabled,
@@ -35,7 +58,6 @@ export function configureNotifications() {
     Notifications.setNotificationChannelAsync(CHANNEL_ID, {
       name: 'Order updates',
       description: 'When Teecas accepts, sends out or delivers your order',
-      // eslint-disable-next-line import/namespace -- re-exported by expo-notifications through export *
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 200, 120, 200],
       lightColor: '#c8451c',
@@ -44,12 +66,13 @@ export function configureNotifications() {
 }
 
 function granted(p) {
-  // eslint-disable-next-line import/namespace -- re-exported by expo-notifications through export *
-  return Boolean(p?.granted) || p?.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
+  // IosAuthorizationStatus.PROVISIONAL is 3: quiet notifications the customer allowed on iOS.
+  return Boolean(p?.granted) || p?.ios?.status === 3;
 }
 
 export async function hasPermission() {
-  if (!supported) return false;
+  const Notifications = N();
+  if (!Notifications) return false;
   try {
     return granted(await Notifications.getPermissionsAsync());
   } catch {
@@ -59,7 +82,8 @@ export async function hasPermission() {
 
 // Shows the system prompt the first time; afterwards returns the saved answer.
 export async function askPermission() {
-  if (!supported) return false;
+  const Notifications = N();
+  if (!Notifications) return false;
   try {
     const now = await Notifications.getPermissionsAsync();
     if (granted(now)) return true;
@@ -73,7 +97,8 @@ export async function askPermission() {
 // The Expo push token for this phone, or '' when push isn't possible here (Expo Go on Android,
 // no EAS project id yet, no permission, offline). Never throws.
 export async function getPushToken() {
-  if (!supported) return '';
+  const Notifications = N();
+  if (!Notifications) return '';
   try {
     if (!(await hasPermission())) return '';
     const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
@@ -107,7 +132,8 @@ export function statusMessage(status, order) {
 }
 
 export async function notifyStatusLocally(order, token) {
-  if (!supported || !enabled) return;
+  const Notifications = N();
+  if (!Notifications || !enabled) return;
   const msg = statusMessage(order?.status, order);
   if (!msg) return;
   try {
@@ -122,7 +148,8 @@ export async function notifyStatusLocally(order, token) {
 
 // Called with { orderId, token } when the customer taps a notification.
 export function onNotificationTap(handler) {
-  if (!supported) return () => {};
+  const Notifications = N();
+  if (!Notifications) return () => {};
   const open = (response) => {
     const data = response?.notification?.request?.content?.data || {};
     if (data.orderId) handler({ orderId: String(data.orderId), token: data.token ? String(data.token) : '' });
@@ -151,7 +178,7 @@ export function onNotificationTap(handler) {
 // For checkout: ask once if never asked, then get the token, giving up after a few seconds so a
 // slow network never holds up placing the order.
 export async function pushTokenForOrder(cached) {
-  if (!supported) return '';
+  if (!N()) return '';
   const work = (async () => {
     if (!(await askPermission())) return '';
     return cached || (await getPushToken());

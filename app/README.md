@@ -26,7 +26,7 @@ npx expo start --clear
 
 ## Order notifications
 
-- **App open:** the app checks active orders every 20 seconds and shows a notification when one changes. Works everywhere, including Expo Go.
+- **App open:** the app checks active orders every 20 seconds and shows a notification when one changes. Works on iOS (including Expo Go) and in Android development and store builds. **Expo Go on Android has no notifications at all** since SDK 53: the app runs normally there, and Settings says order updates aren't available in that preview.
 - **App closed:** the admin sends a push through Expo's push service. This needs:
   1. the admin's push support (`server/push.js`, `PUT /api/public/orders/:id/push`) deployed;
   2. an EAS project id: run `npx eas-cli@latest init` once, which adds `extra.eas.projectId` to `app.json`;

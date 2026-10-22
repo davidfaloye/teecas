@@ -5,7 +5,7 @@ import { AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, View } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEMO_WHATSAPP } from '../demo';
 import { Button, Card, Header, Notice, T, tap } from '../components/ui';
-import { hasPermission } from '../notifications';
+import { hasPermission, notificationsAvailable } from '../notifications';
 import { turnNotificationsOff, turnNotificationsOn } from '../pushSync';
 import { useStore } from '../store';
 import { colors, fonts, radius } from '../theme';
@@ -31,7 +31,8 @@ export default function Settings() {
     return () => sub.remove();
   }, [recheck]);
 
-  const on = settings.notifications && allowed;
+  const available = notificationsAvailable();
+  const on = available && settings.notifications && allowed;
 
   async function toggle(next) {
     tap();
@@ -69,14 +70,17 @@ export default function Settings() {
               <Switch
                 value={on}
                 onValueChange={toggle}
-                disabled={busy}
+                disabled={busy || !available}
                 trackColor={{ false: colors.bg2, true: colors.paprika }}
                 thumbColor={on ? colors.cream : colors.creamDim}
                 ios_backgroundColor={colors.bg2}
                 accessibilityLabel="Order update notifications"
               />
             </View>
-            {(blocked || (settings.notifications && !allowed)) && (
+            {!available ? (
+              <Notice>Order updates work in the installed Teecas app. They aren’t available in this preview (Expo Go on Android).</Notice>
+            ) : null}
+            {available && (blocked || (settings.notifications && !allowed)) && (
               <View style={{ gap: 10 }}>
                 <Notice>Notifications are turned off for Teecas in your phone’s settings. Turn them on there to get order updates.</Notice>
                 <Button label="Open phone settings" kind="ghost" onPress={() => Linking.openSettings().catch(() => {})} />

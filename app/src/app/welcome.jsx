@@ -6,6 +6,7 @@ import { useRef, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, T, tap } from '../components/ui';
+import { notificationsAvailable } from '../notifications';
 import { turnNotificationsOn } from '../pushSync';
 import { useStore } from '../store';
 import { colors, fonts, radius } from '../theme';
@@ -114,7 +115,9 @@ export default function Welcome() {
       </View>
 
       <View style={s.actions}>
-        {last ? (
+        {last && !notificationsAvailable() ? (
+          <Button label="Start ordering" kind="gold" onPress={done} />
+        ) : last ? (
           <>
             <Button label="Turn on order updates" kind="gold" onPress={allowNotifications} loading={busy} />
             <Button label="Not now, start ordering" kind="ghost" onPress={done} disabled={busy} />
