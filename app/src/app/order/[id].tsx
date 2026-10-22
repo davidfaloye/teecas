@@ -12,14 +12,15 @@ import { useStore } from '../../store';
 import { colors, fonts, naira } from '../../theme';
 import type { Branch, Order, OrderStatus } from '../../types';
 
+// Same four stages as the Teecas order board. "Preparing" and "Ready" (used by the kitchen
+// view, which is off for now) count as Accepted.
 const STEPS: { status: OrderStatus; label: string; hint: string }[] = [
-  { status: 'placed', label: 'Order sent', hint: 'Waiting for the branch to accept it' },
-  { status: 'accepted', label: 'Accepted', hint: 'The branch has your order' },
-  { status: 'preparing', label: 'In the kitchen', hint: 'Your food is being prepared' },
-  { status: 'ready', label: 'Ready', hint: 'Packed and ready' },
+  { status: 'placed', label: 'Order sent', hint: 'Waiting for Teecas to accept it' },
+  { status: 'accepted', label: 'Accepted', hint: 'Your food is being prepared' },
   { status: 'out_for_delivery', label: 'On the way', hint: 'Have your payment ready' },
   { status: 'completed', label: 'Delivered', hint: 'Enjoy your meal' },
 ];
+const stepOf = (s: OrderStatus): OrderStatus => (s === 'preparing' || s === 'ready' ? 'accepted' : s);
 
 const time = (iso: string) => {
   const d = new Date(iso);
@@ -63,12 +64,14 @@ export default function OrderScreen() {
   const steps = STEPS.filter((s) => order?.fulfilment === 'delivery' || s.status !== 'out_for_delivery').map((s) =>
     order?.fulfilment === 'pickup' && s.status === 'completed' ? { ...s, label: 'Picked up' } : s,
   );
-  const reached = new Map((order?.statusHistory || []).map((h) => [h.status, h.at]));
-  const currentIdx = order ? steps.findIndex((s) => s.status === order.status) : 0;
+  const reached = new Map<OrderStatus, string>();
+  for (const h of order?.statusHistory || []) if (!reached.has(stepOf(h.status))) reached.set(stepOf(h.status), h.at);
+  const currentIdx = order ? steps.findIndex((s) => s.status === stepOf(order.status)) : 0;
+  const branchName = order?.branchName || '';
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <Header title={order ? `Order #${order.number}` : 'Your order'} subtitle={order ? `${order.branchName} · ${order.fulfilment === 'delivery' ? 'Delivery' : 'Pickup'}` : undefined} back={!fresh} />
+      <Header title={order ? `Order #${order.number}` : 'Your order'} subtitle={order ? `${branchName || 'Teecas'} · ${order.fulfilment === 'delivery' ? 'Delivery' : 'Pickup'}` : undefined} back={!fresh} />
       {!order && !error && <ActivityIndicator color={colors.gold} style={{ marginTop: 40 }} />}
       <ScrollView
         contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 120 }}
@@ -82,8 +85,8 @@ export default function OrderScreen() {
                 <T variant="h3">Thank you, {order.customer.name.split(' ')[0]}!</T>
                 <T variant="small">
                   {saved?.demo
-                    ? `WhatsApp opened with your order pre-written for ${order.branchName}. Tap send so the restaurant gets it.`
-                    : `${order.branchName} has your order. WhatsApp also opened with it pre-written; tap send so they have it there too.`}
+                    ? 'WhatsApp opened with your order pre-written for Teecas. Tap send so the restaurant gets it.'
+                    : 'Teecas has your order and will send it from the branch that can get it to you fastest. WhatsApp also opened with it pre-written; tap send so they have it there too.'}
                 </T>
                 {waUrl ? <Button label="Open WhatsApp again" kind="ghost" onPress={() => Linking.openURL(waUrl).catch(() => {})} /> : null}
               </Card>
@@ -109,7 +112,7 @@ export default function OrderScreen() {
                           {s.label}
                           {reached.get(s.status) ? <T variant="mono" style={{ fontSize: 12 }}>{'  '}{time(reached.get(s.status)!)}</T> : null}
                         </T>
-                        {isNow ? <T variant="small">{s.hint}</T> : null}
+                        {isNow ? <T variant="small">{s.status === 'accepted' && branchName ? `${branchName} is preparing your food` : s.hint}</T> : null}
                       </View>
                     </View>
                   );
@@ -132,6 +135,11 @@ export default function OrderScreen() {
               {order.deliveryFee > 0 && <Row k="Delivery" v={naira(order.deliveryFee)} />}
               <View style={{ height: 1, backgroundColor: colors.line, marginVertical: 4 }} />
               <Row k={order.paymentStatus === 'paid' ? 'Paid' : 'To pay on delivery'} v={naira(order.total)} big />
+              {order.deliveryFeeExcluded ? (
+                <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }}>
+                  Delivery fee excluded
+                </T>
+              ) : null}
               {order.fulfilment === 'delivery' && order.customer.address ? <T variant="muted">Delivering to {order.customer.address}</T> : null}
             </Card>
 

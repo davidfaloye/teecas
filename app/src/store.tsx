@@ -1,16 +1,18 @@
-// App state: chosen branch, cart, the customer's saved details and their past orders.
+// App state: cart, the customer's saved details and their past orders. Customers don't choose a
+// branch: Teecas picks the branch that cooks and delivers each order when it accepts it.
 // Saved on the phone so the next visit picks up where they left off.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { Branch, Customer, Fulfilment, MenuItem, SavedOrder } from './types';
+import type { Customer, MenuItem, SavedOrder } from './types';
 
 type Cart = Record<string, { item: MenuItem; qty: number }>;
 
 type State = {
   ready: boolean;
-  branch: Branch | null;
-  setBranch: (b: Branch) => void;
+  // False when every branch has paused app orders (set from the latest branch list).
+  open: boolean;
+  setOpen: (v: boolean) => void;
   cart: Cart;
   add: (item: MenuItem) => void;
   remove: (itemId: string) => void;
@@ -20,8 +22,6 @@ type State = {
   syncCart: (items: MenuItem[]) => void;
   count: number;
   subtotal: number;
-  fulfilment: Fulfilment;
-  setFulfilment: (f: Fulfilment) => void;
   customer: Customer;
   setCustomer: (c: Customer) => void;
   orders: SavedOrder[];
@@ -34,9 +34,8 @@ const MAX_QTY = 50;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [branch, setBranchState] = useState<Branch | null>(null);
+  const [open, setOpen] = useState(true);
   const [cart, setCart] = useState<Cart>({});
-  const [fulfilment, setFulfilment] = useState<Fulfilment>('delivery');
   const [customer, setCustomer] = useState<Customer>({ name: '', phone: '', address: '' });
   const [orders, setOrders] = useState<SavedOrder[]>([]);
   const loaded = useRef(false);
@@ -46,9 +45,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       .then((raw) => {
         if (!raw) return;
         const s = JSON.parse(raw);
-        if (s.branch) setBranchState(s.branch);
         if (s.cart) setCart(s.cart);
-        if (s.fulfilment) setFulfilment(s.fulfilment);
         if (s.customer) setCustomer(s.customer);
         if (Array.isArray(s.orders)) setOrders(s.orders);
       })
@@ -61,16 +58,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loaded.current) return;
-    AsyncStorage.setItem(KEY, JSON.stringify({ branch, cart, fulfilment, customer, orders })).catch(() => {});
-  }, [branch, cart, fulfilment, customer, orders]);
-
-  const branchRef = useRef<Branch | null>(null);
-  branchRef.current = branch;
-  const setBranch = useCallback((b: Branch) => {
-    // A different branch has its own menu and stock, so start a fresh order.
-    if (branchRef.current && branchRef.current.id !== b.id) setCart({});
-    setBranchState(b);
-  }, []);
+    AsyncStorage.setItem(KEY, JSON.stringify({ cart, customer, orders })).catch(() => {});
+  }, [cart, customer, orders]);
 
   const add = useCallback((item: MenuItem) => {
     setCart((c) => ({ ...c, [item.id]: { item, qty: Math.min(MAX_QTY, (c[item.id]?.qty || 0) + 1) } }));
@@ -117,8 +106,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const lines = Object.values(cart);
     return {
       ready,
-      branch,
-      setBranch,
+      open,
+      setOpen,
       cart,
       add,
       remove,
@@ -127,14 +116,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncCart,
       count: lines.reduce((s, l) => s + l.qty, 0),
       subtotal: lines.reduce((s, l) => s + l.qty * l.item.price, 0),
-      fulfilment,
-      setFulfilment,
       customer,
       setCustomer,
       orders,
       saveOrder,
     };
-  }, [ready, branch, setBranch, cart, add, remove, setQty, clearCart, syncCart, fulfilment, customer, orders, saveOrder]);
+  }, [ready, open, cart, add, remove, setQty, clearCart, syncCart, customer, orders, saveOrder]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

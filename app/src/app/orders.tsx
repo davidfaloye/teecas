@@ -36,7 +36,7 @@ export default function MyOrders() {
           >
             <View style={{ flex: 1 }}>
               <T variant="bold">
-                #{o.number} · {o.branchName}
+                #{o.number} · {o.branchName || 'Teecas'}
               </T>
               <T variant="muted">{when(o.createdAt)}</T>
             </View>

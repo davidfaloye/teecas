@@ -34,7 +34,7 @@ export type OrderLine = { name: string; qty: number; price: number; lineTotal: n
 export type Order = {
   id: string;
   number: number | string;
-  branchId: string;
+  branchId: string | null; // null until Teecas assigns a branch
   branchName: string;
   status: OrderStatus;
   statusHistory: { status: OrderStatus; at: string }[];
@@ -42,6 +42,7 @@ export type Order = {
   items: OrderLine[];
   subtotal: number;
   deliveryFee: number;
+  deliveryFeeExcluded?: boolean; // the rider collects delivery separately
   total: number;
   paymentMethod: 'pay_on_delivery';
   paymentStatus: 'paid' | 'unpaid';

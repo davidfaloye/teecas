@@ -4,17 +4,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Row } from '../components/Row';
 import { Button, Card, Header, Notice, Stepper, T, tap } from '../components/ui';
 import { useStore } from '../store';
-import { colors, fonts, naira, radius } from '../theme';
-import type { Fulfilment } from '../types';
+import { colors, fonts, naira } from '../theme';
 
 export default function Cart() {
-  const { branch, cart, add, remove, setQty, count, subtotal, fulfilment, setFulfilment, clearCart } = useStore();
+  const { open, cart, add, remove, setQty, count, subtotal, clearCart } = useStore();
   const insets = useSafeAreaInsets();
   const lines = Object.values(cart);
-  const deliveryFee = fulfilment === 'delivery' ? branch?.deliveryFee || 0 : 0;
   const soldOut = lines.filter((l) => !l.item.available);
 
-  if (!branch || lines.length === 0) {
+  if (lines.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         <Header title="Your order" />
@@ -34,7 +32,7 @@ export default function Cart() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Header
         title="Your order"
-        subtitle={`${branch.name} · ${count} item${count === 1 ? '' : 's'}`}
+        subtitle={`Delivery · ${count} item${count === 1 ? '' : 's'}`}
         right={
           <Pressable accessibilityRole="button" onPress={() => { tap(); clearCart(); }} hitSlop={8}>
             <T variant="small" style={{ color: colors.bad }}>
@@ -44,20 +42,7 @@ export default function Cart() {
         }
       />
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 120 }}>
-        <View style={s.seg} accessibilityRole="radiogroup">
-          {(['delivery', 'pickup'] as Fulfilment[]).map((f) => (
-            <Pressable key={f} accessibilityRole="radio" accessibilityState={{ checked: fulfilment === f }} onPress={() => { tap(); setFulfilment(f); }} style={[s.segBtn, fulfilment === f && s.segOn]}>
-              <T variant="bold" style={{ color: fulfilment === f ? colors.white : colors.creamDim }}>
-                {f === 'delivery' ? 'Delivery' : 'Pickup'}
-              </T>
-              <T variant="muted" style={{ color: fulfilment === f ? colors.cream : colors.muted, fontSize: 12 }}>
-                {f === 'delivery' ? (branch.deliveryFee ? `${naira(branch.deliveryFee)} fee` : 'Free') : `At ${branch.name}`}
-              </T>
-            </Pressable>
-          ))}
-        </View>
-
-        {soldOut.length > 0 && <Notice tone="bad">{soldOut.map((l) => l.item.name).join(', ')} sold out at {branch.name}. Remove it to continue.</Notice>}
+        {soldOut.length > 0 && <Notice tone="bad">{soldOut.map((l) => l.item.name).join(', ')} sold out. Remove it to continue.</Notice>}
 
         <Card style={{ paddingVertical: 4 }}>
           {lines.map((l, i) => (
@@ -91,20 +76,20 @@ export default function Cart() {
         </Pressable>
 
         <Card style={{ gap: 8 }}>
-          <Row k="Subtotal" v={naira(subtotal)} />
-          {fulfilment === 'delivery' && <Row k="Delivery" v={deliveryFee ? naira(deliveryFee) : 'Free'} />}
-          <View style={{ height: 1, backgroundColor: colors.line, marginVertical: 4 }} />
-          <Row k="Total" v={naira(subtotal + deliveryFee)} big />
+          <Row k="Total to pay" v={naira(subtotal)} big />
+          <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }}>
+            Delivery fee excluded
+          </T>
           <T variant="muted" style={{ marginTop: 4 }}>
-            You pay on delivery: cash, transfer or POS.
+            You pay on delivery: cash, transfer or POS. The delivery fee is settled with the rider.
           </T>
         </Card>
       </ScrollView>
       <View style={[s.foot, { paddingBottom: insets.bottom + 12 }]}>
-        <Button label="Continue" onPress={() => router.push('/checkout')} disabled={soldOut.length > 0 || !branch.acceptingOrders} />
-        {!branch.acceptingOrders && (
+        <Button label="Continue" onPress={() => router.push('/checkout')} disabled={soldOut.length > 0 || !open} />
+        {!open && (
           <T variant="small" style={{ color: colors.bad, textAlign: 'center', marginTop: 6 }}>
-            {branch.name} isn't taking orders right now.
+            Teecas isn't taking orders right now.
           </T>
         )}
       </View>
@@ -113,9 +98,6 @@ export default function Cart() {
 }
 
 const s = StyleSheet.create({
-  seg: { flexDirection: 'row', backgroundColor: colors.bg2, borderRadius: radius.lg, padding: 4, borderWidth: 1, borderColor: colors.line },
-  segBtn: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: radius.md },
-  segOn: { backgroundColor: colors.paprika },
   line: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
   foot: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: 'rgba(27,18,13,0.96)', borderTopWidth: 1, borderTopColor: colors.line },
 });

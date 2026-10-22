@@ -15,7 +15,7 @@ function validPhone(p: string) {
 }
 
 export default function Checkout() {
-  const { branch, cart, subtotal, fulfilment, customer, setCustomer, clearCart, saveOrder, syncCart } = useStore();
+  const { cart, subtotal, customer, setCustomer, clearCart, saveOrder, syncCart } = useStore();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState(customer.name);
   const [phone, setPhone] = useState(customer.phone);
@@ -26,7 +26,7 @@ export default function Checkout() {
   const [busy, setBusy] = useState(false);
   const lines = Object.values(cart).map(({ item, qty }) => ({ item, qty }));
 
-  if (!branch || lines.length === 0) {
+  if (lines.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         <Header title="Checkout" />
@@ -36,21 +36,20 @@ export default function Checkout() {
       </View>
     );
   }
-  const deliveryFee = fulfilment === 'delivery' ? branch.deliveryFee || 0 : 0;
 
   async function submit() {
     const e: Record<string, string> = {};
     if (name.trim().length < 2) e.name = 'Enter your name.';
     if (!validPhone(phone)) e.phone = 'Enter a phone number like 0803 123 4567.';
-    if (fulfilment === 'delivery' && address.trim().length < 5) e.address = 'Tell us where to deliver.';
+    if (address.trim().length < 5) e.address = 'Tell us where to deliver.';
     setErrors(e);
     setError('');
     if (Object.values(e).some(Boolean)) return;
-    const details = { name: name.trim(), phone: phone.trim(), address: fulfilment === 'delivery' ? address.trim() : '' };
-    setCustomer({ ...details, address: address.trim() });
+    const details = { name: name.trim(), phone: phone.trim(), address: address.trim() };
+    setCustomer(details);
     setBusy(true);
     try {
-      const placed = await placeOrder({ branch: branch!, fulfilment, customer: details, note: note.trim(), lines });
+      const placed = await placeOrder({ customer: details, note: note.trim(), lines });
       saveOrder({
         id: placed.order.id,
         number: placed.order.number,
@@ -64,7 +63,7 @@ export default function Checkout() {
       });
       clearCart();
       router.replace({ pathname: '/order/[id]', params: { id: placed.order.id, token: placed.order.trackingToken || '', fresh: '1' } });
-      // Same as the website: the order goes to the branch's WhatsApp, pre-written.
+      // Same as the website: the order goes to Teecas's WhatsApp, pre-written.
       Linking.openURL(placed.whatsapp.url).catch(() => {});
     } catch (err) {
       const ae = err as ApiError;
@@ -81,20 +80,14 @@ export default function Checkout() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <Header title="Checkout" subtitle={`${branch.name} · ${fulfilment === 'delivery' ? 'Delivery' : 'Pickup'}`} />
+      <Header title="Checkout" subtitle="Delivery · pay on delivery" />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 130 }} keyboardShouldPersistTaps="handled">
           <Card style={{ gap: 14 }}>
             <T variant="h3">Your details</T>
             <Input label="Name" value={name} onChangeText={(v) => { setName(v); setErrors((e) => ({ ...e, name: "" })); }} error={errors.name} autoComplete="name" textContentType="name" />
             <Input label="Phone number" value={phone} onChangeText={(v) => { setPhone(v); setErrors((e) => ({ ...e, phone: "" })); }} error={errors.phone} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" placeholder="0803 123 4567" />
-            {fulfilment === 'delivery' ? (
-              <Input label="Delivery address" value={address} onChangeText={(v) => { setAddress(v); setErrors((e) => ({ ...e, address: "" })); }} error={errors.address} multiline placeholder="House number, street, area, landmark" autoComplete="street-address" />
-            ) : (
-              <Notice>
-                Pick up at {branch.name}: {branch.address}
-              </Notice>
-            )}
+            <Input label="Delivery address" value={address} onChangeText={(v) => { setAddress(v); setErrors((e) => ({ ...e, address: "" })); }} error={errors.address} multiline placeholder="House number, street, area, landmark" autoComplete="street-address" />
             <Input label="Note for the kitchen (optional)" value={note} onChangeText={setNote} placeholder="e.g. Extra pepper, no onions" maxLength={300} />
           </Card>
 
@@ -106,7 +99,7 @@ export default function Checkout() {
               </View>
               <View style={{ flex: 1 }}>
                 <T variant="bold">Pay on delivery</T>
-                <T variant="muted">Cash, bank transfer or POS when your food arrives{fulfilment === 'pickup' ? ' or when you pick it up' : ''}.</T>
+                <T variant="muted">Cash, bank transfer or POS when your food arrives.</T>
               </View>
             </View>
           </Card>
@@ -118,19 +111,22 @@ export default function Checkout() {
             {lines.map((l) => (
               <Row key={l.item.id} k={`${l.qty}× ${l.item.name}`} v={naira(l.qty * l.item.price)} />
             ))}
-            {fulfilment === 'delivery' && <Row k="Delivery" v={deliveryFee ? naira(deliveryFee) : 'Free'} />}
             <View style={{ height: 1, backgroundColor: colors.line, marginVertical: 4 }} />
-            <Row k="Total to pay" v={naira(subtotal + deliveryFee)} big />
+            <Row k="Total to pay" v={naira(subtotal)} big />
+            <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }}>
+              Delivery fee excluded
+            </T>
+            <T variant="muted">The delivery fee is settled with the rider.</T>
           </Card>
 
           <T variant="muted" style={{ textAlign: 'center' }}>
-            When you place your order, WhatsApp opens with it written out for {branch.name}. Tap send so the restaurant has it.
+            When you place your order, WhatsApp opens with it written out for Teecas. Tap send so the restaurant has it.
           </T>
           {error ? <Notice tone="bad">{error}</Notice> : null}
         </ScrollView>
       </KeyboardAvoidingView>
       <View style={[s.foot, { paddingBottom: insets.bottom + 12 }]}>
-        <Button label={`Place order · ${naira(subtotal + deliveryFee)}`} onPress={submit} loading={busy} />
+        <Button label={`Place order · ${naira(subtotal)}`} onPress={submit} loading={busy} />
       </View>
     </View>
   );

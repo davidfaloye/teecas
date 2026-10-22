@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
-import { demoBranches, demoMenu } from './demo';
+import { DEMO_WHATSAPP, demoBranches, demoMenu } from './demo';
 import { naira } from './theme';
-import type { Branch, Category, Customer, Fulfilment, MenuItem, Order } from './types';
+import type { Branch, Category, Customer, MenuItem, Order } from './types';
 
 const fromConfig = (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl;
 export const API_URL = (process.env.EXPO_PUBLIC_API_URL || fromConfig || '').replace(/\/+$/, '');
@@ -50,14 +50,14 @@ export async function fetchBranches(): Promise<Branch[]> {
   return d.branches;
 }
 
-export async function fetchMenu(branchId: string): Promise<{ categories: Category[]; items: MenuItem[] }> {
-  if (DEMO_MODE) return demoMenu(branchId);
-  return request(`/menu?branchId=${encodeURIComponent(branchId)}`);
+// The whole menu. Sold out means off at every branch; Teecas picks a branch that has the food.
+export async function fetchMenu(): Promise<{ categories: Category[]; items: MenuItem[] }> {
+  if (DEMO_MODE) return demoMenu();
+  return request('/menu');
 }
 
+// Orders are for delivery and carry no branch: Teecas assigns one when it accepts the order.
 export type PlaceOrderInput = {
-  branch: Branch;
-  fulfilment: Fulfilment;
   customer: Customer;
   note: string;
   lines: { item: MenuItem; qty: number }[];
@@ -70,8 +70,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlacedOrder> {
   const d = await request<{ order: Order; whatsapp: PlacedOrder['whatsapp'] }>('/orders', {
     method: 'POST',
     body: JSON.stringify({
-      branchId: input.branch.id,
-      fulfilment: input.fulfilment,
+      fulfilment: 'delivery',
       customer: input.customer,
       note: input.note,
       items: input.lines.map((l) => ({ id: l.item.id, qty: l.qty })),
@@ -86,16 +85,15 @@ export async function fetchOrder(id: string, token: string): Promise<{ order: Or
 
 // ---- demo mode: same WhatsApp message the server writes ----
 
-export function orderMessage(o: Order, branch: Branch, phone: string, note: string) {
+export function orderMessage(o: Order, phone: string, note: string) {
   const parts = [
     "Hello, I'd like to place an order for:",
     '',
     ...o.items.map((i) => `${i.name} ~ ${i.qty}`),
     '',
     `Order: #${o.number}`,
-    `Branch: ${branch.name}`,
-    o.fulfilment === 'delivery' ? `Delivery to: ${o.customer.address}` : 'Pickup at the branch',
-    `Total: ${naira(o.total)} (pay on delivery)`,
+    `Delivery to: ${o.customer.address}`,
+    `Total: ${naira(o.total)} (pay on delivery, delivery fee excluded)`,
     `Name: ${o.customer.name}`,
     `Phone: ${phone}`,
   ];
@@ -106,33 +104,33 @@ export function orderMessage(o: Order, branch: Branch, phone: string, note: stri
 function placeDemoOrder(input: PlaceOrderInput): PlacedOrder {
   const unavailable = input.lines.filter((l) => !l.item.available).map((l) => l.item.name);
   if (unavailable.length) {
-    throw new ApiError(`Sold out at ${input.branch.name}: ${unavailable.join(', ')}. Remove it to continue.`, 'ITEM_UNAVAILABLE', { unavailable });
+    throw new ApiError(`Sold out: ${unavailable.join(', ')}. Remove it to continue.`, 'ITEM_UNAVAILABLE', { unavailable });
   }
   const items = input.lines.map((l) => ({ name: l.item.name, qty: l.qty, price: l.item.price, lineTotal: l.item.price * l.qty }));
   const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
-  const deliveryFee = input.fulfilment === 'delivery' ? input.branch.deliveryFee : 0;
   const now = new Date().toISOString();
   const order: Order = {
     id: `demo-${Date.now()}`,
     number: `D${Math.floor(1000 + Math.random() * 9000)}`,
-    branchId: input.branch.id,
-    branchName: input.branch.name,
+    branchId: null,
+    branchName: '',
     status: 'placed',
     statusHistory: [{ status: 'placed', at: now }],
-    fulfilment: input.fulfilment,
+    fulfilment: 'delivery',
     items,
     subtotal,
-    deliveryFee,
-    total: subtotal + deliveryFee,
+    deliveryFee: 0,
+    deliveryFeeExcluded: true,
+    total: subtotal,
     paymentMethod: 'pay_on_delivery',
     paymentStatus: 'unpaid',
     customer: { name: input.customer.name, address: input.customer.address },
     createdAt: now,
   };
-  const text = orderMessage(order, input.branch, input.customer.phone, input.note);
+  const text = orderMessage(order, input.customer.phone, input.note);
   return {
     order,
-    whatsapp: { phone: input.branch.whatsapp, text, url: `https://wa.me/${input.branch.whatsapp}?text=${encodeURIComponent(text)}` },
+    whatsapp: { phone: DEMO_WHATSAPP, text, url: `https://wa.me/${DEMO_WHATSAPP}?text=${encodeURIComponent(text)}` },
     demo: true,
   };
 }

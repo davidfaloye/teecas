@@ -82,7 +82,7 @@ const ROWS: Row[] = [
   ['protein', 'Fried Beef', 1650, '🥩', 'Fried beef'],
 ];
 
-export function demoMenu(branchId: string): { categories: Category[]; items: MenuItem[] } {
+export function demoMenu(): { categories: Category[]; items: MenuItem[] } {
   return {
     categories: demoCategories,
     items: ROWS.map(([categoryId, name, price, emoji, description, popular], i) => ({
@@ -93,8 +93,8 @@ export function demoMenu(branchId: string): { categories: Category[]; items: Men
       emoji,
       description,
       popular: Boolean(popular),
-      // Show the "sold out at this branch" state in the demo too.
-      available: !(name === 'Big Turkey' && branchId === 'demo-uniben'),
+      // Show the "sold out" state in the demo too.
+      available: name !== 'Panla Fish',
     })),
   };
 }

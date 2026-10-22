@@ -1,4 +1,4 @@
-import { Redirect, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ import type { Category, MenuItem } from '../types';
 type Section = { key: string; title: string; subtitle?: string; data: MenuItem[] };
 
 export default function Menu() {
-  const { branch, setBranch, cart, add, remove, count, subtotal, syncCart, orders } = useStore();
+  const { open, setOpen, cart, add, remove, count, subtotal, syncCart, orders } = useStore();
   const insets = useSafeAreaInsets();
   const [menu, setMenu] = useState<{ categories: Category[]; items: MenuItem[] } | null>(null);
   const [error, setError] = useState('');
@@ -21,25 +21,21 @@ export default function Menu() {
   const chips = useRef<ComponentRef<typeof ScrollView>>(null);
 
   const load = useCallback(async () => {
-    if (!branch) return;
     setError('');
     try {
-      const [m, branches] = await Promise.all([fetchMenu(branch.id), fetchBranches().catch(() => null)]);
+      const [m, branches] = await Promise.all([fetchMenu(), fetchBranches().catch(() => null)]);
       setMenu(m);
       syncCart(m.items);
-      // Pick up changes to the branch (open/paused, delivery fee) made in the admin.
-      const fresh = branches?.find((b) => b.id === branch.id);
-      if (fresh && JSON.stringify(fresh) !== JSON.stringify(branch)) setBranch(fresh);
+      // App orders are open while at least one branch is taking them (set in the admin).
+      if (branches) setOpen(branches.some((b) => b.acceptingOrders));
     } catch (e) {
       setError((e as Error).message);
     }
-  }, [branch, setBranch, syncCart]);
+  }, [setOpen, syncCart]);
 
   useEffect(() => {
     load();
-    // Reload when the branch changes only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [branch?.id]);
+  }, [load]);
 
   const sections = useMemo<Section[]>(() => {
     if (!menu) return [];
@@ -52,8 +48,6 @@ export default function Menu() {
     }
     return out;
   }, [menu]);
-
-  if (!branch) return <Redirect href="/" />;
 
   const unavailableInCart = Object.values(cart).filter((l) => !l.item.available).length;
   const activeOrder = orders.find((o) => Date.now() - new Date(o.createdAt).getTime() < 3 * 3600e3);
@@ -71,14 +65,14 @@ export default function Menu() {
           <View style={s.mark}>
             <Image source={require('../../assets/icon.png')} style={{ width: 40, height: 40 }} accessibilityIgnoresInvertColors />
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel={`Branch: ${branch.name}. Change branch`} onPress={() => router.push('/?change=1')} style={{ flex: 1 }} hitSlop={6}>
+          <View style={{ flex: 1 }}>
             <T variant="eyebrow" style={{ fontSize: 10 }}>
-              Ordering from
+              Teecas Amala Express
             </T>
             <T variant="h3" numberOfLines={1}>
-              {branch.name} <T variant="small" style={{ color: colors.gold }}>▾ change</T>
+              Order for delivery
             </T>
-          </Pressable>
+          </View>
           <Pressable accessibilityRole="button" accessibilityLabel="My orders" onPress={() => router.push('/orders')} style={s.iconBtn} hitSlop={6}>
             <T variant="mono" style={{ fontSize: 11, color: colors.cream }}>
               ORDERS
@@ -99,9 +93,9 @@ export default function Menu() {
       </View>
       <DemoBanner />
 
-      {!branch.acceptingOrders && (
+      {!open && (
         <View style={{ padding: 14, paddingBottom: 0 }}>
-          <Notice tone="bad">{branch.name} isn't taking app orders right now. You can still browse the menu, or switch branch.</Notice>
+          <Notice tone="bad">Teecas isn't taking app orders right now. You can still browse the menu.</Notice>
         </View>
       )}
       {activeOrder && (
@@ -198,9 +192,10 @@ export default function Menu() {
           ListFooterComponent={
             <View style={{ padding: 24, alignItems: 'center', gap: 6 }}>
               <T variant="mono" style={{ fontSize: 11, textAlign: 'center' }}>
-                {branch.address.toUpperCase()}
+                TEECAS AMALA EXPRESS BUKKA · BENIN CITY
               </T>
               <T variant="muted">Pay on delivery · cash, transfer or POS</T>
+              <T variant="muted">Delivery fee excluded from prices</T>
             </View>
           }
         />
