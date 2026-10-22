@@ -12,6 +12,11 @@ const MAX_ORDERS = 30;
 
 const DEFAULT_SETTINGS = { notifications: true };
 
+// The first-launch tour is shown once per tour version. Raise this when the tour changes and
+// everyone sees it again on their next launch. (Earlier builds skipped it for anyone with saved
+// orders; that is why it never showed on phones that had been used for testing.)
+export const TOUR_VERSION = 2;
+
 // What's on the phone may come from an older version of the app: keep only what is well formed.
 function cleanCart(raw) {
   const out = {};
@@ -37,7 +42,7 @@ export function StoreProvider({ children }) {
   const [customer, setCustomer] = useState({ name: '', phone: '', address: '' });
   const [orders, setOrders] = useState([]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [onboarded, setOnboarded] = useState(false);
+  const [tourSeen, setTourSeen] = useState(0);
   const [pushToken, setPushToken] = useState('');
   const loaded = useRef(false);
 
@@ -52,8 +57,7 @@ export function StoreProvider({ children }) {
         }
         setOrders(cleanOrders(s.orders));
         if (s.settings && typeof s.settings === 'object') setSettings({ ...DEFAULT_SETTINGS, ...s.settings });
-        // Someone who already ordered with an earlier version has seen what the app does.
-        setOnboarded(Boolean(s.onboarded) || (Array.isArray(s.orders) && s.orders.length > 0));
+        setTourSeen(Number(s.tourSeen) || 0);
         if (typeof s.pushToken === 'string') setPushToken(s.pushToken);
       })
       .catch(() => {})
@@ -65,8 +69,8 @@ export function StoreProvider({ children }) {
 
   useEffect(() => {
     if (!loaded.current) return;
-    AsyncStorage.setItem(KEY, JSON.stringify({ cart, customer, orders, settings, onboarded, pushToken })).catch(() => {});
-  }, [cart, customer, orders, settings, onboarded, pushToken]);
+    AsyncStorage.setItem(KEY, JSON.stringify({ cart, customer, orders, settings, tourSeen, pushToken })).catch(() => {});
+  }, [cart, customer, orders, settings, tourSeen, pushToken]);
 
   const add = useCallback((item) => {
     if (!item?.id) return;
@@ -145,7 +149,8 @@ export function StoreProvider({ children }) {
   }, []);
 
   const updateSettings = useCallback((patch) => setSettings((s) => ({ ...s, ...patch })), []);
-  const finishOnboarding = useCallback(() => setOnboarded(true), []);
+  const finishOnboarding = useCallback(() => setTourSeen(TOUR_VERSION), []);
+  const replayTour = useCallback(() => setTourSeen(0), []);
 
   const forgetDetails = useCallback(() => setCustomer({ name: '', phone: '', address: '' }), []);
 
@@ -172,12 +177,13 @@ export function StoreProvider({ children }) {
       updateOrder,
       settings,
       updateSettings,
-      onboarded,
+      onboarded: tourSeen >= TOUR_VERSION,
       finishOnboarding,
+      replayTour,
       pushToken,
       setPushToken,
     };
-  }, [ready, open, cart, add, remove, setQty, clearCart, syncCart, markSoldOut, customer, forgetDetails, orders, saveOrder, updateOrder, settings, updateSettings, onboarded, finishOnboarding, pushToken]);
+  }, [ready, open, cart, add, remove, setQty, clearCart, syncCart, markSoldOut, customer, forgetDetails, orders, saveOrder, updateOrder, settings, updateSettings, tourSeen, finishOnboarding, replayTour, pushToken]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

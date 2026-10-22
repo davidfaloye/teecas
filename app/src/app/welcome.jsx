@@ -2,7 +2,7 @@
 // Shown once; Settings doesn't bring it back.
 
 import { router } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, T, tap } from '../components/ui';
@@ -10,6 +10,8 @@ import { notificationsAvailable } from '../notifications';
 import { turnNotificationsOn } from '../pushSync';
 import { useStore } from '../store';
 import { colors, fonts, radius } from '../theme';
+
+const AUTO_ADVANCE_MS = 3500;
 
 const SLIDES = [
   {
@@ -49,8 +51,31 @@ export default function Welcome() {
   const { finishOnboarding, orders, updateOrder, setPushToken, updateSettings } = useStore();
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [height, setHeight] = useState(0); // each card fills the carousel's height
+  const [paused, setPaused] = useState(false); // stops auto-sliding once the customer swipes
   const list = useRef(null);
+  const indexRef = useRef(0);
   const last = index === SLIDES.length - 1;
+
+  useEffect(() => {
+    indexRef.current = index;
+  }, [index]);
+
+  // Carousel: slide to the next card every few seconds until the last one, or until the
+  // customer takes over by swiping.
+  useEffect(() => {
+    if (paused) return;
+    const t = setInterval(() => {
+      const next = indexRef.current + 1;
+      if (next >= SLIDES.length) {
+        clearInterval(t);
+        return;
+      }
+      list.current?.scrollToOffset({ offset: next * width, animated: true });
+      setIndex(next);
+    }, AUTO_ADVANCE_MS);
+    return () => clearInterval(t);
+  }, [paused, width]);
 
   function done() {
     finishOnboarding();
@@ -98,11 +123,13 @@ export default function Welcome() {
         bounces={false}
         showsHorizontalScrollIndicator={false}
         getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+        onScrollBeginDrag={() => setPaused(true)}
         onMomentumScrollEnd={(e) => {
           const i = Math.round(e.nativeEvent.contentOffset.x / Math.max(1, width));
           if (i !== index) setIndex(i);
         }}
-        renderItem={({ item }) => <Slide slide={item} width={width} />}
+        onLayout={(e) => setHeight(e.nativeEvent.layout.height)}
+        renderItem={({ item }) => <Slide slide={item} width={width} height={height} />}
         style={{ flex: 1 }}
       />
 
@@ -130,9 +157,9 @@ export default function Welcome() {
   );
 }
 
-function Slide({ slide, width }) {
+function Slide({ slide, width, height }) {
   return (
-    <View style={[s.slide, { width }]}>
+    <View style={[s.slide, { width }, height ? { height } : null]}>
       <View style={s.artWrap}>
         <View style={s.glow} />
         {slide.logo ? (
@@ -169,8 +196,8 @@ const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, height: 36 },
   slide: { flex: 1, justifyContent: 'center', gap: 36 },
-  artWrap: { alignItems: 'center', justifyContent: 'center', minHeight: 220, gap: 18 },
-  glow: { position: 'absolute', width: 260, height: 260, borderRadius: 130, backgroundColor: 'rgba(200,69,28,0.18)' },
+  artWrap: { alignItems: 'center', justifyContent: 'center', height: 240, gap: 18 },
+  glow: { position: 'absolute', width: 230, height: 230, borderRadius: 115, backgroundColor: 'rgba(200,69,28,0.18)' },
   logo: { width: 96, height: 96, borderRadius: 26, overflow: 'hidden', borderWidth: 1, borderColor: colors.line },
   artRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   bubble: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },

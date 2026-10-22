@@ -12,7 +12,7 @@ import { colors, fonts, radius } from '../theme';
 
 export default function Settings() {
   const insets = useSafeAreaInsets();
-  const { settings, updateSettings, orders, updateOrder, setPushToken, customer, forgetDetails } = useStore();
+  const { settings, updateSettings, orders, updateOrder, setPushToken, customer, forgetDetails, replayTour } = useStore();
   const [allowed, setAllowed] = useState(true);
   const [busy, setBusy] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -117,6 +117,14 @@ export default function Settings() {
             <Link label="Terms of service" onPress={() => router.push('/terms')} />
             <Link label="Privacy" onPress={() => router.push({ pathname: '/terms', params: { section: 'privacy' } })} divider />
             <Link label="Chat with Teecas on WhatsApp" onPress={() => Linking.openURL(`https://wa.me/${DEMO_WHATSAPP}`).catch(() => {})} divider />
+            <Link
+              label="See the app tour again"
+              onPress={() => {
+                replayTour();
+                router.replace('/welcome');
+              }}
+              divider
+            />
           </Card>
         </Section>
 
