@@ -82,6 +82,16 @@ export default function SignIn() {
               returnKeyType="go"
               onSubmitEditing={submit}
             />
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.replace({ pathname: '/forgot-password', params: { login: phone.trim() } })}
+              hitSlop={8}
+              style={{ alignSelf: 'flex-end', marginTop: -4 }}
+            >
+              <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }}>
+                Forgot password?
+              </T>
+            </Pressable>
             {error ? <Notice tone="bad">{error}</Notice> : null}
             <Button label="Sign in" onPress={submit} loading={busy} />
           </Card>

@@ -127,6 +127,7 @@ export default function Settings() {
                 <T variant="small">Signed in. Your orders are saved to your account and show on any phone you sign in on.</T>
                 <Detail k="Name" v={account.customer.name} />
                 <Detail k="Phone" v={localPhone(account.customer.phone)} />
+                {account.customer.email ? <Detail k="Email" v={account.customer.email} /> : null}
                 {account.customer.address ? <Detail k="Saved address" v={account.customer.address} /> : null}
                 {accountError ? <Notice tone="bad">{accountError}</Notice> : null}
                 <Button label="Sign out" kind="ghost" onPress={signOut} />

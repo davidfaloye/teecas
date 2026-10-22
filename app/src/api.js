@@ -233,7 +233,7 @@ export async function setOrderPush(id, token, pushToken) {
 
 export function normalizeCustomer(c) {
   if (!c || typeof c !== 'object' || !c.id) return null;
-  return { id: text(c.id), name: text(c.name), phone: text(c.phone), address: text(c.address) };
+  return { id: text(c.id), name: text(c.name), phone: text(c.phone), email: text(c.email), address: text(c.address) };
 }
 
 function accountsOff() {
@@ -247,9 +247,24 @@ function session(d) {
 }
 
 // claim: [{ id, token }] guest orders on this phone to move into the account.
-export async function signUp({ name, phone, password, address, claim }) {
+export async function signUp({ name, phone, email, password, address, claim }) {
   if (DEMO_MODE) throw accountsOff();
-  return session(await request('/account/signup', { method: 'POST', body: { name, phone, password, address, claim } }));
+  return session(await request('/account/signup', { method: 'POST', body: { name, phone, email, password, address, claim } }));
+}
+
+// Forgot password, step 1: emails a 6-digit code to the account. login: phone number or email.
+// The server answers the same whether or not the account exists. Returns how many minutes the
+// code lasts.
+export async function requestPasswordReset(login) {
+  if (DEMO_MODE) throw accountsOff();
+  const d = await request('/account/forgot', { method: 'POST', body: { login } });
+  return Number(d.minutes) || 15;
+}
+
+// Forgot password, step 2: the code and a new password. Signs in, like signIn.
+export async function resetPassword({ login, code, password, claim }) {
+  if (DEMO_MODE) throw accountsOff();
+  return session(await request('/account/reset', { method: 'POST', body: { login, code, password, claim } }));
 }
 
 export async function signIn({ phone, password, claim }) {

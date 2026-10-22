@@ -45,7 +45,7 @@ function cleanOrders(raw) {
 function cleanAccount(raw) {
   const c = raw?.customer;
   if (!raw || typeof raw.token !== 'string' || !raw.token || !c?.id) return null;
-  return { token: raw.token, customer: { id: String(c.id), name: String(c.name || ''), phone: String(c.phone || ''), address: String(c.address || '') } };
+  return { token: raw.token, customer: { id: String(c.id), name: String(c.name || ''), phone: String(c.phone || ''), email: String(c.email || ''), address: String(c.address || '') } };
 }
 
 const EMPTY_MY_ORDERS = { list: [], more: false, fetchedAt: 0, customerId: '' };
