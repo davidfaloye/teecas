@@ -1,11 +1,9 @@
 // Built-in sample data so the app works for a showcase without a server.
 // Matches the admin's demo seed: three branches and the menu from teecas.online.
 
-import type { Branch, Category, MenuItem } from './types';
-
 export const DEMO_WHATSAPP = '2348088524502';
 
-export const demoBranches: Branch[] = [
+export const demoBranches = [
   {
     id: 'demo-ogba',
     name: 'Ogba Road',
@@ -37,15 +35,14 @@ export const demoBranches: Branch[] = [
   },
 ];
 
-export const demoCategories: Category[] = [
+export const demoCategories = [
   { id: 'amala', name: 'Amala Cuisine', subtitle: 'Swallow · made fresh to order' },
   { id: 'soups', name: 'Soups', subtitle: 'Rich · slow-simmered' },
   { id: 'main', name: 'Main Course', subtitle: 'Rice, plantain & sides' },
   { id: 'protein', name: 'Protein', subtitle: 'Meat & fish · sold per portion' },
 ];
 
-type Row = [string, string, number, string, string, boolean?];
-const ROWS: Row[] = [
+const ROWS = [
   ['amala', 'Amala', 1075, '🟤', 'Soft, smooth yam-flour swallow', true],
   ['amala', 'Plantain Amala', 1075, '🟫', 'Unripe plantain swallow, lighter on the stomach'],
   ['amala', 'Poundo', 1075, '⚪', 'Pounded-yam style swallow'],
@@ -82,7 +79,7 @@ const ROWS: Row[] = [
   ['protein', 'Fried Beef', 1650, '🥩', 'Fried beef'],
 ];
 
-export function demoMenu(): { categories: Category[]; items: MenuItem[] } {
+export function demoMenu() {
   return {
     categories: demoCategories,
     items: ROWS.map(([categoryId, name, price, emoji, description, popular], i) => ({

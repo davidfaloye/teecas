@@ -1,0 +1,171 @@
+import Constants from 'expo-constants';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DEMO_WHATSAPP } from '../demo';
+import { Button, Card, Header, Notice, T, tap } from '../components/ui';
+import { hasPermission } from '../notifications';
+import { turnNotificationsOff, turnNotificationsOn } from '../pushSync';
+import { useStore } from '../store';
+import { colors, fonts, radius } from '../theme';
+
+export default function Settings() {
+  const insets = useSafeAreaInsets();
+  const { settings, updateSettings, orders, updateOrder, setPushToken, customer, forgetDetails } = useStore();
+  const [allowed, setAllowed] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const [forgot, setForgot] = useState(false);
+
+  const recheck = useCallback(() => {
+    hasPermission().then(setAllowed);
+  }, []);
+
+  // Coming back from the phone's settings: pick up a change there.
+  useEffect(() => {
+    recheck();
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') recheck();
+    });
+    return () => sub.remove();
+  }, [recheck]);
+
+  const on = settings.notifications && allowed;
+
+  async function toggle(next) {
+    tap();
+    setBusy(true);
+    try {
+      if (next) {
+        const { granted } = await turnNotificationsOn({ orders, updateOrder, setPushToken });
+        setAllowed(granted);
+        setBlocked(!granted);
+        updateSettings({ notifications: granted });
+      } else {
+        setBlocked(false);
+        updateSettings({ notifications: false });
+        await turnNotificationsOff({ orders, updateOrder });
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const hasDetails = Boolean(customer.name || customer.phone || customer.address);
+  const version = Constants.expoConfig?.version || '1.0.0';
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <Header title="Settings" />
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 18, paddingBottom: insets.bottom + 32 }}>
+        <Section title="Notifications">
+          <Card style={{ gap: 12 }}>
+            <View style={s.row}>
+              <View style={{ flex: 1, gap: 2 }}>
+                <T variant="bold">Order updates</T>
+                <T variant="muted">When Teecas accepts your order, sends it out and delivers it.</T>
+              </View>
+              <Switch
+                value={on}
+                onValueChange={toggle}
+                disabled={busy}
+                trackColor={{ false: colors.bg2, true: colors.paprika }}
+                thumbColor={on ? colors.cream : colors.creamDim}
+                ios_backgroundColor={colors.bg2}
+                accessibilityLabel="Order update notifications"
+              />
+            </View>
+            {(blocked || (settings.notifications && !allowed)) && (
+              <View style={{ gap: 10 }}>
+                <Notice>Notifications are turned off for Teecas in your phone’s settings. Turn them on there to get order updates.</Notice>
+                <Button label="Open phone settings" kind="ghost" onPress={() => Linking.openSettings().catch(() => {})} />
+              </View>
+            )}
+          </Card>
+        </Section>
+
+        <Section title="Your details">
+          <Card style={{ gap: 10 }}>
+            {hasDetails ? (
+              <>
+                <T variant="small">Saved on this phone so checkout is faster next time.</T>
+                {customer.name ? <Detail k="Name" v={customer.name} /> : null}
+                {customer.phone ? <Detail k="Phone" v={customer.phone} /> : null}
+                {customer.address ? <Detail k="Address" v={customer.address} /> : null}
+                <Button
+                  label="Forget my details"
+                  kind="ghost"
+                  onPress={() => {
+                    forgetDetails();
+                    setForgot(true);
+                  }}
+                />
+              </>
+            ) : (
+              <T variant="small">{forgot ? 'Done. Your details were removed from this phone.' : 'Nothing saved yet. Your name, phone and address are saved here after your first order.'}</T>
+            )}
+          </Card>
+        </Section>
+
+        <Section title="About">
+          <Card style={{ paddingVertical: 4 }}>
+            <Link label="Terms of service" onPress={() => router.push('/terms')} />
+            <Link label="Privacy" onPress={() => router.push({ pathname: '/terms', params: { section: 'privacy' } })} divider />
+            <Link label="Chat with Teecas on WhatsApp" onPress={() => Linking.openURL(`https://wa.me/${DEMO_WHATSAPP}`).catch(() => {})} divider />
+          </Card>
+        </Section>
+
+        <View style={{ alignItems: 'center', gap: 4, marginTop: 8 }}>
+          <T variant="mono" style={{ fontSize: 11 }}>
+            TEECAS AMALA EXPRESS BUKKA
+          </T>
+          <T variant="muted">Version {version}</T>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function Section({ title, children }) {
+  return (
+    <View style={{ gap: 8 }}>
+      <T variant="eyebrow" style={{ marginLeft: 4 }}>
+        {title}
+      </T>
+      {children}
+    </View>
+  );
+}
+
+function Detail({ k, v }) {
+  return (
+    <View style={{ gap: 2 }}>
+      <T variant="muted">{k}</T>
+      <T variant="medium">{v}</T>
+    </View>
+  );
+}
+
+function Link({ label, onPress, divider }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => {
+        tap();
+        onPress();
+      }}
+      style={({ pressed }) => [s.link, divider && { borderTopWidth: 1, borderTopColor: colors.lineSoft }, pressed && { opacity: 0.7 }]}
+    >
+      <T variant="medium" style={{ flex: 1 }}>
+        {label}
+      </T>
+      <T style={{ color: colors.muted, fontFamily: fonts.medium }}>›</T>
+    </Pressable>
+  );
+}
+
+const s = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  link: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderRadius: radius.sm },
+});

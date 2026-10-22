@@ -33,8 +33,30 @@ export const fonts = {
 
 export const radius = { sm: 8, md: 12, lg: 16, pill: 999 };
 
-// ₦1,075 — written by hand so it looks the same on every phone.
-export function naira(n: number) {
+// ₦1,075, written by hand so it looks the same on every phone.
+export function naira(n) {
   const v = Math.round(Number(n) || 0);
   return '₦' + String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function validDate(iso) {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+// 7:45pm. Empty string for a missing or broken date instead of "NaN:NaN".
+export function clock(iso) {
+  const d = validDate(iso);
+  if (!d) return '';
+  const h = d.getHours();
+  return `${h % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')}${h < 12 ? 'am' : 'pm'}`;
+}
+
+// 22 Oct, 7:45pm
+export function dayAndClock(iso) {
+  const d = validDate(iso);
+  if (!d) return '';
+  return `${d.getDate()} ${MONTHS[d.getMonth()]}, ${clock(iso)}`;
 }

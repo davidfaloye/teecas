@@ -1,36 +1,40 @@
 import { router } from 'expo-router';
-import { useState, type ComponentProps } from 'react';
+import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ApiError, placeOrder } from '../api';
+import { friendlyError, placeOrder } from '../api';
+import { Row } from '../components/Row';
 import { Button, Card, Header, Notice, T } from '../components/ui';
+import { pushTokenForOrder } from '../notifications';
 import { useStore } from '../store';
 import { colors, fonts, naira, radius } from '../theme';
-import { Row } from '../components/Row';
 
 // Nigerian numbers: 0803 123 4567 or +234 803 123 4567.
-function validPhone(p: string) {
-  const d = p.replace(/[^\d]/g, '');
-  return (d.length === 11 && d.startsWith('0')) || (d.length === 13 && d.startsWith('234')) || (d.length >= 10 && d.length <= 15 && p.trim().startsWith('+'));
+function validPhone(p) {
+  const d = String(p || '').replace(/[^\d]/g, '');
+  return (d.length === 11 && d.startsWith('0')) || (d.length === 13 && d.startsWith('234')) || (d.length >= 10 && d.length <= 15 && String(p).trim().startsWith('+'));
 }
 
 export default function Checkout() {
-  const { cart, subtotal, customer, setCustomer, clearCart, saveOrder, syncCart } = useStore();
+  const { cart, subtotal, customer, setCustomer, clearCart, saveOrder, markSoldOut, open, settings, pushToken, setPushToken } = useStore();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState(customer.name);
   const [phone, setPhone] = useState(customer.phone);
   const [address, setAddress] = useState(customer.address);
   const [note, setNote] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const submitting = useRef(false); // stops a double tap placing two orders
   const lines = Object.values(cart).map(({ item, qty }) => ({ item, qty }));
+  const soldOut = lines.filter((l) => !l.item.available);
 
   if (lines.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         <Header title="Checkout" />
-        <View style={{ padding: 20 }}>
+        <View style={{ padding: 20, gap: 12 }}>
+          <T variant="small">Your order is empty.</T>
           <Button label="Back to the menu" kind="gold" onPress={() => router.replace('/menu')} />
         </View>
       </View>
@@ -38,18 +42,31 @@ export default function Checkout() {
   }
 
   async function submit() {
-    const e: Record<string, string> = {};
+    if (submitting.current) return;
+    const e = {};
     if (name.trim().length < 2) e.name = 'Enter your name.';
     if (!validPhone(phone)) e.phone = 'Enter a phone number like 0803 123 4567.';
     if (address.trim().length < 5) e.address = 'Tell us where to deliver.';
     setErrors(e);
     setError('');
-    if (Object.values(e).some(Boolean)) return;
+    if (Object.keys(e).length) return;
+    if (soldOut.length) {
+      setError(`${soldOut.map((l) => l.item.name).join(', ')} sold out. Go back and remove it to continue.`);
+      return;
+    }
+
     const details = { name: name.trim(), phone: phone.trim(), address: address.trim() };
     setCustomer(details);
+    submitting.current = true;
     setBusy(true);
     try {
-      const placed = await placeOrder({ customer: details, note: note.trim(), lines });
+      let token = '';
+      if (settings.notifications) {
+        token = await pushTokenForOrder(pushToken);
+        if (token && token !== pushToken) setPushToken(token);
+      }
+      const placed = await placeOrder({ customer: details, note: note.trim(), lines, pushToken: token });
+      const waUrl = placed.whatsapp?.url || '';
       saveOrder({
         id: placed.order.id,
         number: placed.order.number,
@@ -58,22 +75,21 @@ export default function Checkout() {
         total: placed.order.total,
         createdAt: placed.order.createdAt,
         demo: placed.demo,
-        whatsappUrl: placed.whatsapp.url,
+        whatsappUrl: waUrl,
+        lastStatus: placed.order.status,
+        push: Boolean(token) && !placed.demo,
         snapshot: placed.demo ? placed.order : undefined,
       });
       clearCart();
       router.replace({ pathname: '/order/[id]', params: { id: placed.order.id, token: placed.order.trackingToken || '', fresh: '1' } });
       // Same as the website: the order goes to Teecas's WhatsApp, pre-written.
-      Linking.openURL(placed.whatsapp.url).catch(() => {});
+      if (waUrl) Linking.openURL(waUrl).catch(() => {});
     } catch (err) {
-      const ae = err as ApiError;
-      setError(ae.message);
-      if (ae.code === 'ITEM_UNAVAILABLE' && ae.details?.unavailable) {
-        // Mark them sold out so the cart shows what to remove.
-        const gone = new Set(ae.details.unavailable);
-        syncCart(lines.map((l) => ({ ...l.item, available: !gone.has(l.item.name) })));
-      }
+      setError(friendlyError(err));
+      if (err?.code === 'ITEM_UNAVAILABLE') markSoldOut(err.details?.unavailable);
+      if (err?.code === 'BRANCH_CLOSED') setError("Teecas isn't taking orders right now. Please try again later.");
     } finally {
+      submitting.current = false;
       setBusy(false);
     }
   }
@@ -85,9 +101,45 @@ export default function Checkout() {
         <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 130 }} keyboardShouldPersistTaps="handled">
           <Card style={{ gap: 14 }}>
             <T variant="h3">Your details</T>
-            <Input label="Name" value={name} onChangeText={(v) => { setName(v); setErrors((e) => ({ ...e, name: "" })); }} error={errors.name} autoComplete="name" textContentType="name" />
-            <Input label="Phone number" value={phone} onChangeText={(v) => { setPhone(v); setErrors((e) => ({ ...e, phone: "" })); }} error={errors.phone} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" placeholder="0803 123 4567" />
-            <Input label="Delivery address" value={address} onChangeText={(v) => { setAddress(v); setErrors((e) => ({ ...e, address: "" })); }} error={errors.address} multiline placeholder="House number, street, area, landmark" autoComplete="street-address" />
+            <Input
+              label="Name"
+              value={name}
+              onChangeText={(v) => {
+                setName(v);
+                setErrors((x) => ({ ...x, name: '' }));
+              }}
+              error={errors.name}
+              autoComplete="name"
+              textContentType="name"
+              maxLength={80}
+            />
+            <Input
+              label="Phone number"
+              value={phone}
+              onChangeText={(v) => {
+                setPhone(v);
+                setErrors((x) => ({ ...x, phone: '' }));
+              }}
+              error={errors.phone}
+              keyboardType="phone-pad"
+              autoComplete="tel"
+              textContentType="telephoneNumber"
+              placeholder="0803 123 4567"
+              maxLength={20}
+            />
+            <Input
+              label="Delivery address"
+              value={address}
+              onChangeText={(v) => {
+                setAddress(v);
+                setErrors((x) => ({ ...x, address: '' }));
+              }}
+              error={errors.address}
+              multiline
+              placeholder="House number, street, area, landmark"
+              autoComplete="street-address"
+              maxLength={300}
+            />
             <Input label="Note for the kitchen (optional)" value={note} onChangeText={setNote} placeholder="e.g. Extra pepper, no onions" maxLength={300} />
           </Card>
 
@@ -126,13 +178,18 @@ export default function Checkout() {
         </ScrollView>
       </KeyboardAvoidingView>
       <View style={[s.foot, { paddingBottom: insets.bottom + 12 }]}>
-        <Button label={`Place order · ${naira(subtotal)}`} onPress={submit} loading={busy} />
+        <Button label={`Place order · ${naira(subtotal)}`} onPress={submit} loading={busy} disabled={!open} />
+        {!open && (
+          <T variant="small" style={{ color: colors.bad, textAlign: 'center', marginTop: 6 }}>
+            Teecas isn’t taking orders right now.
+          </T>
+        )}
       </View>
     </View>
   );
 }
 
-function Input({ label, error, ...props }: { label: string; error?: string } & ComponentProps<typeof TextInput>) {
+function Input({ label, error, multiline, ...props }) {
   return (
     <View style={{ gap: 6 }}>
       <T variant="small" style={{ fontFamily: fonts.semibold }}>
@@ -141,8 +198,9 @@ function Input({ label, error, ...props }: { label: string; error?: string } & C
       <TextInput
         placeholderTextColor={colors.muted}
         selectionColor={colors.gold}
-        style={[s.input, props.multiline && { minHeight: 76, textAlignVertical: 'top' }, error ? { borderColor: colors.bad } : null]}
+        style={[s.input, multiline && { minHeight: 76, textAlignVertical: 'top' }, error ? { borderColor: colors.bad } : null]}
         accessibilityLabel={label}
+        multiline={multiline}
         {...props}
       />
       {error ? (

@@ -39,11 +39,16 @@
           "resizeMode": "contain",
           "backgroundColor": "#f3e9dc"
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#c8451c",
+          "defaultChannel": "orders"
+        }
       ]
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "extra": {
       "apiUrl": "",
       "restaurantName": "Teecas Amala Express Bukka"

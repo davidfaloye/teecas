@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Row } from '../components/Row';
-import { Button, Card, Header, Notice, Stepper, T, tap } from '../components/ui';
+import { Button, Card, Header, Notice, Stepper, T, goBack, tap } from '../components/ui';
 import { useStore } from '../store';
 import { colors, fonts, naira } from '../theme';
 
@@ -69,7 +69,7 @@ export default function Cart() {
           ))}
         </Card>
 
-        <Pressable onPress={() => router.back()} accessibilityRole="button">
+        <Pressable onPress={goBack} accessibilityRole="button">
           <T variant="small" style={{ color: colors.gold, textAlign: 'center', fontFamily: fonts.semibold }}>
             + Add more from the menu
           </T>
@@ -89,7 +89,7 @@ export default function Cart() {
         <Button label="Continue" onPress={() => router.push('/checkout')} disabled={soldOut.length > 0 || !open} />
         {!open && (
           <T variant="small" style={{ color: colors.bad, textAlign: 'center', marginTop: 6 }}>
-            Teecas isn't taking orders right now.
+            Teecas isn’t taking orders right now.
           </T>
         )}
       </View>

@@ -1,16 +1,15 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DEMO_MODE } from '../api';
 import { colors, fonts, radius } from '../theme';
 
 export const tap = () => Haptics.selectionAsync().catch(() => {});
 
-export function T({ children, style, variant = 'body', numberOfLines }: { children: ReactNode; style?: StyleProp<TextStyle>; variant?: keyof typeof text; numberOfLines?: number }) {
+// Text in the app's type styles. variant: one of the keys of `text` below.
+export function T({ children, style, variant = 'body', numberOfLines }) {
   return (
-    <Text style={[text[variant], style]} numberOfLines={numberOfLines} maxFontSizeMultiplier={1.4}>
+    <Text style={[text[variant] || text.body, style]} numberOfLines={numberOfLines} maxFontSizeMultiplier={1.4}>
       {children}
     </Text>
   );
@@ -32,33 +31,18 @@ const text = StyleSheet.create({
   price: { fontFamily: fonts.monoBold, fontSize: 15, color: colors.gold },
 });
 
-export function Button({
-  label,
-  onPress,
-  kind = 'primary',
-  disabled,
-  loading,
-  style,
-  right,
-}: {
-  label: string;
-  onPress: () => void;
-  kind?: 'primary' | 'gold' | 'ghost' | 'quiet';
-  disabled?: boolean;
-  loading?: boolean;
-  style?: StyleProp<ViewStyle>;
-  right?: ReactNode;
-}) {
+// kind: 'primary' | 'gold' | 'ghost' | 'quiet'
+export function Button({ label, onPress, kind = 'primary', disabled, loading, style, right }) {
   const bg = kind === 'primary' ? colors.paprika : kind === 'gold' ? colors.gold : 'transparent';
   const fg = kind === 'gold' ? colors.bg : colors.cream;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled: disabled || loading }}
+      accessibilityState={{ disabled: Boolean(disabled || loading) }}
       disabled={disabled || loading}
       onPress={() => {
         tap();
-        onPress();
+        onPress?.();
       }}
       style={({ pressed }) => [
         styles.btn,
@@ -72,7 +56,7 @@ export function Button({
   );
 }
 
-export function Stepper({ qty, onAdd, onRemove, label }: { qty: number; onAdd: () => void; onRemove: () => void; label: string }) {
+export function Stepper({ qty, onAdd, onRemove, label }) {
   return (
     <View style={styles.stepper}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Remove one ${label}`} hitSlop={8} onPress={() => { tap(); onRemove(); }} style={styles.stepBtn}>
@@ -88,31 +72,31 @@ export function Stepper({ qty, onAdd, onRemove, label }: { qty: number; onAdd: (
   );
 }
 
-export function Header({ title, subtitle, back = true, right }: { title: string; subtitle?: string; back?: boolean; right?: ReactNode }) {
+export function goBack() {
+  if (router.canGoBack()) router.back();
+  else router.replace('/menu');
+}
+
+export function Header({ title, subtitle, back = true, right }) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
       {back ? (
-        <Pressable accessibilityRole="button" accessibilityLabel="Go back" hitSlop={10} onPress={() => (router.canGoBack() ? router.back() : router.replace('/menu'))} style={styles.back}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Go back" hitSlop={10} onPress={goBack} style={styles.back}>
           <Text style={styles.backText}>←</Text>
         </Pressable>
       ) : null}
       <View style={{ flex: 1 }}>
-        <T variant="h2">{title}</T>
-        {subtitle ? <T variant="small">{subtitle}</T> : null}
+        <T variant="h2" numberOfLines={1}>
+          {title}
+        </T>
+        {subtitle ? (
+          <T variant="small" numberOfLines={1}>
+            {subtitle}
+          </T>
+        ) : null}
       </View>
       {right}
-    </View>
-  );
-}
-
-export function DemoBanner() {
-  if (!DEMO_MODE) return null;
-  return (
-    <View style={styles.demo}>
-      <T variant="small" style={{ color: colors.gold }}>
-        Demo menu · orders go straight to the restaurant on WhatsApp
-      </T>
     </View>
   );
 }
@@ -127,11 +111,12 @@ export function Dots() {
   );
 }
 
-export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+export function Card({ children, style }) {
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
-export function Notice({ children, tone = 'warn' }: { children: ReactNode; tone?: 'warn' | 'bad' | 'good' }) {
+// tone: 'warn' | 'bad' | 'good'
+export function Notice({ children, tone = 'warn' }) {
   const c = tone === 'bad' ? colors.bad : tone === 'good' ? colors.good : colors.gold;
   return (
     <View style={[styles.notice, { borderColor: c + '66', backgroundColor: c + '18' }]}>
@@ -152,7 +137,6 @@ export const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.line, backgroundColor: colors.bg },
   back: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
   backText: { color: colors.cream, fontSize: 20, lineHeight: 22 },
-  demo: { paddingVertical: 8, paddingHorizontal: 18, backgroundColor: 'rgba(217,161,91,0.1)', borderBottomWidth: 1, borderBottomColor: 'rgba(217,161,91,0.25)' },
   dots: { flexDirection: 'row', gap: 5, justifyContent: 'center', marginTop: 18 },
   dot: { width: 4, height: 4, borderRadius: 2 },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, padding: 16 },
