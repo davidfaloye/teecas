@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "Teecas",
+    "slug": "teecas",
+    "scheme": "teecas",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#1b120d",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.cullinari.teecas"
+    },
+    "android": {
+      "package": "com.cullinari.teecas",
+      "adaptiveIcon": {
+        "backgroundColor": "#f3e9dc",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#f3e9dc"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "apiUrl": "",
+      "restaurantName": "Teecas Amala Express Bukka"
+    }
+  }
+}
