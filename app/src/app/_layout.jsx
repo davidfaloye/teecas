@@ -75,6 +75,7 @@ function Root() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'slide_from_right' }}>
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
         <Stack.Screen name="welcome" options={{ animation: 'fade', gestureEnabled: false }} />
+        <Stack.Screen name="start" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="menu" options={{ animation: 'fade' }} />
         <Stack.Screen name="order/[id]" options={{ gestureEnabled: false }} />
       </Stack>

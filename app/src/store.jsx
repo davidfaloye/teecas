@@ -66,6 +66,7 @@ export function StoreProvider({ children }) {
   const [tourSeen, setTourSeen] = useState(0);
   const [pushToken, setPushToken] = useState('');
   const [account, setAccount] = useState(null); // { token, customer } when signed in
+  const [gateSeen, setGateSeen] = useState(false); // the sign-in / guest page after the tour has been dealt with
   const [myOrders, setMyOrdersState] = useState(EMPTY_MY_ORDERS);
   const loaded = useRef(false);
 
@@ -82,6 +83,7 @@ export function StoreProvider({ children }) {
         if (s.settings && typeof s.settings === 'object') setSettings({ ...DEFAULT_SETTINGS, ...s.settings });
         setTourSeen(Number(s.tourSeen) || 0);
         if (typeof s.pushToken === 'string') setPushToken(s.pushToken);
+        setGateSeen(Boolean(s.gateSeen));
         const acct = cleanAccount(s.account);
         setAccount(acct);
         // fetchedAt starts at 0 so the saved list shows at once and is refreshed on first open.
@@ -96,8 +98,8 @@ export function StoreProvider({ children }) {
 
   useEffect(() => {
     if (!loaded.current) return;
-    AsyncStorage.setItem(KEY, JSON.stringify({ cart, customer, orders, settings, tourSeen, pushToken, account, myOrders })).catch(() => {});
-  }, [cart, customer, orders, settings, tourSeen, pushToken, account, myOrders]);
+    AsyncStorage.setItem(KEY, JSON.stringify({ cart, customer, orders, settings, tourSeen, pushToken, account, myOrders, gateSeen })).catch(() => {});
+  }, [cart, customer, orders, settings, tourSeen, pushToken, account, myOrders, gateSeen]);
 
   const add = useCallback((item) => {
     if (!item?.id) return;
@@ -183,6 +185,7 @@ export function StoreProvider({ children }) {
 
   // After sign-up or sign-in. Checkout is pre-filled from the account.
   const startSession = useCallback(({ token, customer: c }) => {
+    setGateSeen(true);
     setAccount({ token, customer: c });
     setMyOrdersState({ ...EMPTY_MY_ORDERS, customerId: c.id });
     setCustomer((cur) => ({ name: c.name || cur.name, phone: c.phone ? localPhone(c.phone) : cur.phone, address: c.address || cur.address }));
@@ -193,11 +196,18 @@ export function StoreProvider({ children }) {
     setAccount((a) => (a && a.customer.id === c.id ? { ...a, customer: c } : a));
   }, []);
 
-  // Signing out keeps the orders placed on this phone (and their tracking) but drops the
-  // account's cached list, so the next person to use the phone doesn't see it.
+  // The sign-in / guest page has been dealt with (signed in, or chose to continue as a guest).
+  const finishGate = useCallback(() => setGateSeen(true), []);
+
+  // Logging out takes the account off this phone: its cached order list, the orders placed while
+  // signed in (they live in the account and come back when the customer signs in again) and the
+  // saved name, phone and address, so the next person to use the phone doesn't see them. Orders
+  // placed as a guest stay: guests' history is kept only on the phone.
   const signOut = useCallback(() => {
     setAccount(null);
     setMyOrdersState(EMPTY_MY_ORDERS);
+    setOrders((list) => list.filter((o) => !o.customerId));
+    setCustomer({ name: '', phone: '', address: '' });
   }, []);
 
   // Save what the server returned for the signed-in account. Ignored if the customer signed out
@@ -235,6 +245,8 @@ export function StoreProvider({ children }) {
       pushToken,
       setPushToken,
       account,
+      gateSeen,
+      finishGate,
       signedIn: Boolean(account),
       startSession,
       updateAccountCustomer,
@@ -242,7 +254,7 @@ export function StoreProvider({ children }) {
       myOrders,
       setMyOrders,
     };
-  }, [ready, open, cart, add, remove, setQty, clearCart, syncCart, markSoldOut, customer, forgetDetails, orders, saveOrder, updateOrder, settings, updateSettings, tourSeen, finishOnboarding, replayTour, pushToken, account, startSession, updateAccountCustomer, signOut, myOrders, setMyOrders]);
+  }, [ready, open, cart, add, remove, setQty, clearCart, syncCart, markSoldOut, customer, forgetDetails, orders, saveOrder, updateOrder, settings, updateSettings, tourSeen, finishOnboarding, replayTour, pushToken, account, gateSeen, finishGate, startSession, updateAccountCustomer, signOut, myOrders, setMyOrders]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

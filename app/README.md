@@ -37,12 +37,13 @@ Settings → Order updates turns both off (and tells the admin to stop pushing f
 
 ## Accounts
 
-Customers can order as guests, or create an account with their name, phone number, email and a password (Settings, My orders, or the prompt at checkout). Accounts are only in this app; the admin's staff sign-in is separate and a customer account can't open it.
+After the first-launch tour, a page offers **Create an account**, **Sign in** or **Continue as guest** (`src/app/start.jsx`, shown once). Signing in is also in **Settings**, which shows **Log out** instead once someone is signed in. Accounts are only in this app; the admin's staff sign-in is separate and a customer account can't open it.
 
-- Signed in, **My orders** loads the account's orders from the admin's database, so they show on any phone. The list is cached in the store (and saved on the phone): it shows at once, refreshes from the server when it's over 30 seconds old or a new order was placed, refreshes every 20 seconds while an order is on its way, and always on pull-to-refresh. See `src/useMyOrders.js`.
+- **Guest:** can order straight away. The order, name, phone, address and food are saved by Teecas as always, but the guest's order history is kept only on the phone (AsyncStorage), and My orders reads it from there.
+- **Account** (name, phone number, email, password): My orders loads the account's orders from the admin's database, so they show on any phone. The list is cached in the store (and saved on the phone): it shows at once, refreshes from the server when it's over 30 seconds old or a new order was placed, refreshes every 20 seconds while an order is on its way, and always on pull-to-refresh. See `src/useMyOrders.js`.
 - Guest orders already on the phone move into the account on sign-up or sign-in (matched by their tracking tokens).
-- Settings has sign out and delete account (Apple requires in-app account deletion for apps that offer sign-up).
-- Customers sign in with their phone number. **Forgot password?** on the sign-in screen emails a 6-digit code to the account's email; they enter it with a new password and are signed in (other phones are signed out). Emails only go out once SMTP is set up on the admin server (see its `.env.example`).
+- **Log out** removes the account's cached list, the orders placed while signed in and the saved name, phone and address from the phone. Orders placed as a guest stay. Settings also has delete account (Apple requires in-app account deletion for apps that offer sign-up).
+- Customers sign in with their phone number. **Forgot password?** on the sign-in screen emails a 6-digit code to the account's email; they enter it with a new password and are signed in (other phones are signed out). Emails only go out once SMTP is set up on the admin (see its `.env.example`).
 
 The endpoints are documented in the teecas-admin README under "Customer accounts".
 

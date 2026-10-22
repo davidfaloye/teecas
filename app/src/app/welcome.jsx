@@ -1,5 +1,5 @@
 // First-launch tour: four swipeable cards showing how simple ordering is.
-// Shown once; Settings doesn't bring it back.
+// Shown once, then the sign-in / guest page (start.jsx).
 
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -48,7 +48,7 @@ const SLIDES = [
 export default function Welcome() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const { finishOnboarding, orders, updateOrder, setPushToken, updateSettings } = useStore();
+  const { finishOnboarding, orders, updateOrder, setPushToken, updateSettings, account, gateSeen } = useStore();
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const [height, setHeight] = useState(0); // each card fills the carousel's height
@@ -77,17 +77,11 @@ export default function Welcome() {
     return () => clearInterval(t);
   }, [paused, width]);
 
+  // After the tour comes the sign-in / guest page, once. (Replaying the tour from Settings goes
+  // straight back to the menu.)
   function done() {
     finishOnboarding();
-    router.replace('/menu');
-  }
-
-  // From the last card: finish the tour and open sign-in or sign-up. Once signed in, the
-  // customer lands on the menu.
-  function account(path) {
-    tap();
-    finishOnboarding();
-    router.replace(path);
+    router.replace(account || gateSeen ? '/menu' : '/start');
   }
 
   function goTo(i) {
@@ -151,27 +145,15 @@ export default function Welcome() {
 
       <View style={s.actions}>
         {last && !notificationsAvailable() ? (
-          <Button label="Start ordering" kind="gold" onPress={done} />
+          <Button label="Continue" kind="gold" onPress={done} />
         ) : last ? (
           <>
             <Button label="Turn on order updates" kind="gold" onPress={allowNotifications} loading={busy} />
-            <Button label="Not now, start ordering" kind="ghost" onPress={done} disabled={busy} />
+            <Button label="Not now" kind="ghost" onPress={done} disabled={busy} />
           </>
         ) : (
           <Button label="Next" onPress={() => goTo(index + 1)} />
         )}
-        {last ? (
-          <T variant="small" style={{ textAlign: 'center', marginTop: 4 }}>
-            Have an account?{' '}
-            <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }} onPress={() => account('/signin')}>
-              Sign in
-            </T>
-            {'  ·  '}
-            <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }} onPress={() => account('/signup')}>
-              Create one
-            </T>
-          </T>
-        ) : null}
       </View>
     </View>
   );

@@ -26,7 +26,7 @@ const fold = (v) =>
     .trim();
 
 export default function Menu() {
-  const { open, setOpen, cart, add, remove, count, subtotal, syncCart, orders, account } = useStore();
+  const { open, setOpen, cart, add, remove, count, subtotal, syncCart, orders } = useStore();
   const insets = useSafeAreaInsets();
   const [menu, setMenu] = useState(null);
   const [error, setError] = useState('');
@@ -137,17 +137,6 @@ export default function Menu() {
               Order for delivery
             </T>
           </View>
-          {account ? (
-            <Pressable accessibilityRole="button" accessibilityLabel={`Signed in as ${account.customer.name}. Account`} onPress={() => router.push('/settings')} style={s.avatar} hitSlop={6}>
-              <T style={{ fontSize: 15, lineHeight: 18, color: colors.bg, fontFamily: fonts.bold }}>{(account.customer.name.trim()[0] || '•').toUpperCase()}</T>
-            </Pressable>
-          ) : (
-            <Pressable accessibilityRole="button" accessibilityLabel="Sign in or create an account" onPress={() => router.push('/signin')} style={s.iconBtn} hitSlop={6}>
-              <T variant="mono" style={{ fontSize: 11, color: colors.gold }}>
-                SIGN IN
-              </T>
-            </Pressable>
-          )}
           <Pressable accessibilityRole="button" accessibilityLabel="My orders" onPress={() => router.push('/orders')} style={s.iconBtn} hitSlop={6}>
             <T variant="mono" style={{ fontSize: 11, color: colors.cream }}>
               ORDERS
@@ -382,7 +371,6 @@ const s = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingBottom: 10 },
   mark: { width: 40, height: 40, borderRadius: 12, overflow: 'hidden' },
   iconBtn: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 8 },
-  avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   roundBtn: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginBottom: 10, paddingHorizontal: 12, height: 44, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line },
   searchInput: { flex: 1, color: colors.cream, fontFamily: fonts.body, fontSize: 15, paddingVertical: 0 },

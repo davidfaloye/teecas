@@ -86,6 +86,7 @@ export default function Checkout() {
         demo: placed.demo,
         whatsappUrl: waUrl,
         lastStatus: placed.order.status,
+        customerId: account?.customer.id, // placed while signed in: removed from the phone on log out
         push: Boolean(token) && !placed.demo,
         snapshot: placed.demo ? placed.order : undefined,
       });

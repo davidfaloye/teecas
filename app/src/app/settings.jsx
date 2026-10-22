@@ -124,18 +124,18 @@ export default function Settings() {
           <Card style={{ gap: 10 }}>
             {account ? (
               <>
-                <T variant="small">Signed in. Your orders are saved to your account and show on any phone you sign in on.</T>
+                <T variant="small">You’re signed in. Your orders are saved to your account and show on any phone you sign in on.</T>
                 <Detail k="Name" v={account.customer.name} />
                 <Detail k="Phone" v={localPhone(account.customer.phone)} />
                 {account.customer.email ? <Detail k="Email" v={account.customer.email} /> : null}
                 {account.customer.address ? <Detail k="Saved address" v={account.customer.address} /> : null}
                 {accountError ? <Notice tone="bad">{accountError}</Notice> : null}
-                <Button label="Sign out" kind="ghost" onPress={signOut} />
+                <Button label="Log out" kind="gold" onPress={signOut} />
                 <Button label="Delete my account" kind="quiet" onPress={confirmDelete} loading={deleting} />
               </>
             ) : (
               <>
-                <T variant="small">Create an account to fill in checkout for you and keep your orders, even on a new phone.</T>
+                <T variant="small">You’re ordering as a guest, so your past orders are saved on this phone only. Teecas still gets every order you place. Create an account to keep them on any phone.</T>
                 <Button label="Create an account" kind="gold" onPress={() => router.push('/signup')} />
                 <Button label="Sign in" kind="ghost" onPress={() => router.push('/signin')} />
               </>
