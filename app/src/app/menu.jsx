@@ -133,17 +133,17 @@ export default function Menu() {
             <T variant="eyebrow" style={{ fontSize: 10 }}>
               Teecas Amala Express
             </T>
-            <T variant="h3" numberOfLines={1}>
+            {/* <T variant="h4" numberOfLines={1}>
               Order for delivery
-            </T>
+            </T> */}
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel="My orders" onPress={() => router.push('/orders')} style={s.iconBtn} hitSlop={6}>
-            <T variant="mono" style={{ fontSize: 11, color: colors.cream }}>
+            <T variant="mono" style={{ fontSize: 14, color: colors.cream }}>
               ORDERS
             </T>
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={s.roundBtn} hitSlop={6}>
-            <T style={{ fontSize: 17, lineHeight: 20, color: colors.cream }}>⚙︎</T>
+            <T style={{ fontSize: 21, lineHeight: 20, color: colors.cream }}>⚙︎</T>
           </Pressable>
         </View>
 
@@ -236,10 +236,6 @@ export default function Menu() {
               <View style={{ paddingHorizontal: 14, paddingTop: 12 }}>
                 <Notice tone="bad">{error}</Notice>
               </View>
-            ) : !searching ? (
-              <T variant="small" style={{ textAlign: 'center', paddingTop: 16 }}>
-                Tap + to add food to your order
-              </T>
             ) : null
           }
           ListEmptyComponent={
