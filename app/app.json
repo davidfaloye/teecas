@@ -51,7 +51,15 @@
     ],
     "extra": {
       "apiUrl": "",
-      "restaurantName": "Teecas Amala Express Bukka"
+      "restaurantName": "Teecas Amala Express Bukka",
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "eeef187e-ef3f-4a8d-9b32-befe723a5349"
+      }
     }
   }
 }

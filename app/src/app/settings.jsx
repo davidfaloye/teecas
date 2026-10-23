@@ -26,7 +26,7 @@ export default function Settings() {
   function confirmDelete() {
     Alert.alert(
       'Delete your account?',
-      'Your sign-in and saved details are removed. Teecas keeps its record of past orders, but they won’t be linked to you any more. This can’t be undone.',
+      'Your sign-in and saved details are removed. Teecas Amala keeps its record of past orders, but they won’t be linked to you any more. This can’t be undone.',
       [
         { text: 'Keep my account', style: 'cancel' },
         {
@@ -96,7 +96,7 @@ export default function Settings() {
           <Card style={{ gap: 12 }}>
             <View style={{ gap: 2 }}>
               <T variant="bold">Theme</T>
-              <T variant="muted">How Teecas looks on this phone.</T>
+              <T variant="muted">How Teecas Amala looks on this phone.</T>
             </View>
             <View style={s.seg} accessibilityRole="radiogroup">
               {THEME_CHOICES.map(([key, label]) => {
@@ -128,7 +128,7 @@ export default function Settings() {
             <View style={s.row}>
               <View style={{ flex: 1, gap: 2 }}>
                 <T variant="bold">Order updates</T>
-                <T variant="muted">When Teecas accepts your order, sends it out and delivers it.</T>
+                <T variant="muted">When Teecas Amala accepts your order, sends it out and delivers it.</T>
               </View>
               <Switch
                 value={on}
@@ -141,11 +141,11 @@ export default function Settings() {
               />
             </View>
             {!available ? (
-              <Notice>Order updates work in the installed Teecas app. They aren’t available in this preview (Expo Go on Android).</Notice>
+              <Notice>Order updates work in the installed Teecas Amala app. They aren’t available in this preview (Expo Go on Android).</Notice>
             ) : null}
             {available && (blocked || (settings.notifications && !allowed)) && (
               <View style={{ gap: 10 }}>
-                <Notice>Notifications are turned off for Teecas in your phone’s settings. Turn them on there to get order updates.</Notice>
+                <Notice>Notifications are turned off for Teecas Amala in your phone’s settings. Turn them on there to get order updates.</Notice>
                 <Button label="Open phone settings" kind="ghost" onPress={() => Linking.openSettings().catch(() => {})} />
               </View>
             )}
@@ -167,7 +167,7 @@ export default function Settings() {
               </>
             ) : (
               <>
-                <T variant="small">You’re ordering as a guest, so your past orders are saved on this phone only. Teecas still gets every order you place. Create an account to keep them on any phone.</T>
+                <T variant="small">You’re ordering as a guest, so your past orders are saved on this phone only. Teecas Amala still gets every order you place. Create an account to keep them on any phone.</T>
                 <Button label="Create an account" kind="gold" onPress={() => router.push('/signup')} />
                 <Button label="Sign in" kind="ghost" onPress={() => router.push('/signin')} />
               </>
@@ -204,7 +204,7 @@ export default function Settings() {
           <Card style={{ paddingVertical: 4 }}>
             <Link label="Terms of service" onPress={() => router.push('/terms')} />
             <Link label="Privacy" onPress={() => router.push({ pathname: '/terms', params: { section: 'privacy' } })} divider />
-            <Link label="Chat with Teecas on WhatsApp" onPress={() => Linking.openURL(`https://wa.me/${DEMO_WHATSAPP}`).catch(() => {})} divider />
+            <Link label="Chat with Teecas Amala on WhatsApp" onPress={() => Linking.openURL(`https://wa.me/${DEMO_WHATSAPP}`).catch(() => {})} divider />
             <Link
               label="See the app tour again"
               onPress={() => {

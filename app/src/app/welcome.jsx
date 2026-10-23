@@ -18,8 +18,8 @@ const SLIDES = [
   {
     key: 'menu',
     eyebrow: 'Welcome to',
-    title: 'Teecas, on your phone',
-    body: 'The full Teecas menu, from amala and egusi to goat meat and turkey. Prices are always up to date.',
+    title: 'Teecas Amala, on your phone',
+    body: 'The full Teecas Amala Express Bukka menu, from amala and egusi to goat meat and turkey. Prices are always up to date.',
     art: ['🥣', '🍛', '🍖'],
     logo: true,
   },
