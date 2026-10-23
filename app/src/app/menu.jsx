@@ -141,10 +141,10 @@ export default function Menu() {
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel="My orders" onPress={() => router.push('/orders')} style={s.iconBtn} hitSlop={6}>
             <T variant="mono" style={{ fontSize: 14, color: colors.cream }}>
-              ORDERS
+              MY ORDERS
             </T>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={s.roundBtn} hitSlop={6}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={[s.roundBtn,{borderWidth:2, borderColor:colors.cream}]} hitSlop={6}>
             <Ionicons name="settings-outline" size={20} color={colors.cream} />
           </Pressable>
         </View>
@@ -365,7 +365,7 @@ const s = themed(() => StyleSheet.create({
   top: { backgroundColor: colors.bar, borderBottomWidth: 1, borderBottomColor: colors.line },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingBottom: 10 },
   mark: { width: 40, height: 40, borderRadius: 12, overflow: 'hidden' },
-  iconBtn: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 8 },
+  iconBtn: { borderWidth: 2, borderColor: colors.cream, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 8 },
   roundBtn: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginBottom: 10, paddingHorizontal: 12, height: 44, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line },
   searchInput: { flex: 1, color: colors.cream, fontFamily: fonts.body, fontSize: 15, paddingVertical: 0 },
