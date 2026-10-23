@@ -7,6 +7,7 @@ import { Button, Notice, Stepper, T, tap } from '../components/ui';
 import { isActiveOrder, isRecentDemoOrder } from '../orderWatcher';
 import { useStore } from '../store';
 import { colors, fonts, naira, radius, themed } from '../theme';
+import { FoodThumb } from '../components/FoodThumb';
 
 const STATUS_LABEL = {
   placed: 'Sent',
@@ -266,13 +267,7 @@ export default function Menu() {
             const last = index === section.data.length - 1;
             return (
               <View style={[s.item, first && s.itemFirst, last && s.itemLast, !item.available && { opacity: 0.5 }]}>
-                <View style={s.emoji}>
-                  {item.imageUrl ? (
-                    <Image source={{ uri: item.imageUrl }} style={{ width: 52, height: 52, borderRadius: 12 }} />
-                  ) : (
-                    <T style={{ fontSize: 26, lineHeight: 32 }}>{item.emoji || '🍽️'}</T>
-                  )}
-                </View>
+                <FoodThumb item={item} size={56} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <T variant="medium" style={{ fontSize: 16 }}>
                     {item.name}
@@ -379,7 +374,6 @@ const s = themed(() => StyleSheet.create({
   item: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 14, paddingHorizontal: 12, paddingVertical: 12, backgroundColor: colors.card, borderLeftWidth: 1, borderRightWidth: 1, borderColor: colors.line, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.lineSoft },
   itemFirst: { borderTopLeftRadius: 14, borderTopRightRadius: 14, borderTopWidth: 1, borderTopColor: colors.line },
   itemLast: { borderBottomLeftRadius: 14, borderBottomRightRadius: 14, borderBottomWidth: 1 },
-  emoji: { width: 52, height: 52, borderRadius: 12, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   add: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.paprika, alignItems: 'center', justifyContent: 'center' },
   soldOut: { borderWidth: 1, borderColor: colors.bad + '66', borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 3 },
   cartWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14, paddingTop: 10, backgroundColor: colors.bar, borderTopWidth: 1, borderTopColor: colors.line },

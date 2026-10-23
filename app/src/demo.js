@@ -1,6 +1,8 @@
 // Built-in sample data so the app works for a showcase without a server.
 // Matches the admin's demo seed: three branches and the menu from teecas.online.
 
+import { MENU_PHOTOS } from './menuPhotos';
+
 export const DEMO_WHATSAPP = '2348088524502';
 
 export const demoBranches = [
@@ -88,6 +90,7 @@ export function demoMenu() {
       name,
       price,
       emoji,
+      imageUrl: MENU_PHOTOS[name] || '',
       description,
       popular: Boolean(popular),
       // Show the "sold out" state in the demo too.

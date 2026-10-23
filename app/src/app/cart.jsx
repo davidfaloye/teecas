@@ -5,6 +5,7 @@ import { Row } from '../components/Row';
 import { Button, Card, Header, Notice, Stepper, T, goBack, tap } from '../components/ui';
 import { useStore } from '../store';
 import { colors, fonts, naira, themed } from '../theme';
+import { FoodThumb } from '../components/FoodThumb';
 
 export default function Cart() {
   const { open, cart, add, remove, setQty, count, subtotal, clearCart } = useStore();
@@ -47,7 +48,7 @@ export default function Cart() {
         <Card style={{ paddingVertical: 4 }}>
           {lines.map((l, i) => (
             <View key={l.item.id} style={[s.line, i > 0 && { borderTopWidth: 1, borderTopColor: colors.lineSoft }]}>
-              <T style={{ fontSize: 24, lineHeight: 30 }}>{l.item.emoji || '🍽️'}</T>
+              <FoodThumb item={l.item} size={44} />
               <View style={{ flex: 1 }}>
                 <T variant="medium" style={!l.item.available && { textDecorationLine: 'line-through', color: colors.muted }}>
                   {l.item.name}
