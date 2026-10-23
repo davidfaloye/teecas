@@ -10,7 +10,7 @@ import { DONE_STATUSES, fetchOrder, friendlyError } from '../../api';
 import { Row } from '../../components/Row';
 import { Button, Card, Header, Notice, T } from '../../components/ui';
 import { useStore } from '../../store';
-import { clock, colors, fonts, naira } from '../../theme';
+import { clock, colors, fonts, naira, themed } from '../../theme';
 
 // Same four stages as the Teecas order board. "Preparing" and "Ready" (used by the kitchen view)
 // count as Accepted.
@@ -219,9 +219,9 @@ export default function OrderScreen() {
   );
 }
 
-const st = StyleSheet.create({
+const st = themed(() => StyleSheet.create({
   step: { flexDirection: 'row', gap: 14 },
   dot: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: colors.line, backgroundColor: colors.bg, marginTop: 3 },
   bar: { width: 2, flex: 1, backgroundColor: colors.line, marginVertical: 2 },
-  foot: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: 'rgba(27,18,13,0.96)', borderTopWidth: 1, borderTopColor: colors.line },
-});
+  foot: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: colors.bar, borderTopWidth: 1, borderTopColor: colors.line },
+}));

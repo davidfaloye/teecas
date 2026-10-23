@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fonts, radius } from '../theme';
+import { colors, fonts, radius, themed } from '../theme';
 
 export const tap = () => Haptics.selectionAsync().catch(() => {});
 
@@ -22,7 +22,7 @@ export function T({ children, style, variant = 'body', numberOfLines, onPress })
   );
 }
 
-const text = StyleSheet.create({
+const text = themed(() => StyleSheet.create({
   body: { fontFamily: fonts.body, fontSize: 15, color: colors.cream, lineHeight: 21 },
   medium: { fontFamily: fonts.medium, fontSize: 15, color: colors.cream, lineHeight: 21 },
   bold: { fontFamily: fonts.bold, fontSize: 15, color: colors.cream, lineHeight: 21 },
@@ -36,12 +36,12 @@ const text = StyleSheet.create({
   eyebrow: { fontFamily: fonts.mono, fontSize: 11, color: colors.gold, letterSpacing: 2, textTransform: 'uppercase' },
   mono: { fontFamily: fonts.mono, fontSize: 13, color: colors.creamDim },
   price: { fontFamily: fonts.monoBold, fontSize: 15, color: colors.gold },
-});
+}));
 
 // kind: 'primary' | 'gold' | 'ghost' | 'quiet'
 export function Button({ label, onPress, kind = 'primary', disabled, loading, style, right }) {
   const bg = kind === 'primary' ? colors.paprika : kind === 'gold' ? colors.gold : 'transparent';
-  const fg = kind === 'gold' ? colors.bg : colors.cream;
+  const fg = kind === 'gold' ? colors.bg : kind === 'primary' ? colors.onAccent : colors.cream;
   return (
     <Pressable
       accessibilityRole="button"
@@ -134,7 +134,7 @@ export function Notice({ children, tone = 'warn' }) {
   );
 }
 
-export const styles = StyleSheet.create({
+export const styles = themed(() => StyleSheet.create({
   btn: { minHeight: 52, borderRadius: radius.md, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10, borderWidth: 1 },
   btnText: { fontFamily: fonts.bold, fontSize: 16 },
   stepper: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg2, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line },
@@ -148,4 +148,4 @@ export const styles = StyleSheet.create({
   dot: { width: 4, height: 4, borderRadius: 2 },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, padding: 16 },
   notice: { borderRadius: radius.md, borderWidth: 1, padding: 12 },
-});
+}));

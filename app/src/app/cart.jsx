@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Row } from '../components/Row';
 import { Button, Card, Header, Notice, Stepper, T, goBack, tap } from '../components/ui';
 import { useStore } from '../store';
-import { colors, fonts, naira } from '../theme';
+import { colors, fonts, naira, themed } from '../theme';
 
 export default function Cart() {
   const { open, cart, add, remove, setQty, count, subtotal, clearCart } = useStore();
@@ -97,7 +97,7 @@ export default function Cart() {
   );
 }
 
-const s = StyleSheet.create({
+const s = themed(() => StyleSheet.create({
   line: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
-  foot: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: 'rgba(27,18,13,0.96)', borderTopWidth: 1, borderTopColor: colors.line },
-});
+  foot: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: colors.bar, borderTopWidth: 1, borderTopColor: colors.line },
+}));

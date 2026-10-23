@@ -8,7 +8,7 @@ import { Image, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, T } from '../components/ui';
 import { useStore } from '../store';
-import { colors } from '../theme';
+import { colors, themed } from '../theme';
 
 export default function Start() {
   const insets = useSafeAreaInsets();
@@ -52,10 +52,10 @@ export default function Start() {
   );
 }
 
-const s = StyleSheet.create({
+const s = themed(() => StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   hero: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 32 },
-  glow: { position: 'absolute', top: '12%', width: 230, height: 230, borderRadius: 115, backgroundColor: 'rgba(200,69,28,0.18)' },
+  glow: { position: 'absolute', top: '12%', width: 230, height: 230, borderRadius: 115, backgroundColor: colors.glow },
   logo: { width: 96, height: 96, borderRadius: 26, overflow: 'hidden', borderWidth: 1, borderColor: colors.line },
   actions: { paddingHorizontal: 20, gap: 10 },
-});
+}));

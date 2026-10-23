@@ -10,6 +10,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { localPhone } from './phone';
+import { applyTheme, DEFAULT_THEME } from './theme';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 const Ctx = createContext(null);
@@ -17,7 +18,7 @@ const KEY = 'teecas.app.v1'; // unchanged so existing customers keep their cart 
 const MAX_QTY = 50;
 const MAX_ORDERS = 30;
 
-const DEFAULT_SETTINGS = { notifications: true };
+const DEFAULT_SETTINGS = { notifications: true, theme: DEFAULT_THEME };
 
 // The first-launch tour is shown once per tour version. Raise this when the tour changes and
 // everyone sees it again on their next launch. (Earlier builds skipped it for anyone with saved
@@ -80,7 +81,11 @@ export function StoreProvider({ children }) {
           setCustomer({ name: String(s.customer.name || ''), phone: String(s.customer.phone || ''), address: String(s.customer.address || '') });
         }
         setOrders(cleanOrders(s.orders));
-        if (s.settings && typeof s.settings === 'object') setSettings({ ...DEFAULT_SETTINGS, ...s.settings });
+        if (s.settings && typeof s.settings === 'object') {
+          const saved = { ...DEFAULT_SETTINGS, ...s.settings };
+          applyTheme(saved.theme); // before the first screen draws, so it never flashes the wrong theme
+          setSettings(saved);
+        }
         setTourSeen(Number(s.tourSeen) || 0);
         if (typeof s.pushToken === 'string') setPushToken(s.pushToken);
         setGateSeen(Boolean(s.gateSeen));
@@ -177,7 +182,11 @@ export function StoreProvider({ children }) {
     });
   }, []);
 
-  const updateSettings = useCallback((patch) => setSettings((s) => ({ ...s, ...patch })), []);
+  const updateSettings = useCallback((patch) => {
+    // Switch the colours first; the settings change then redraws every screen with them.
+    if (patch.theme) applyTheme(patch.theme);
+    setSettings((s) => ({ ...s, ...patch }));
+  }, []);
   const finishOnboarding = useCallback(() => setTourSeen(TOUR_VERSION), []);
   const replayTour = useCallback(() => setTourSeen(0), []);
 

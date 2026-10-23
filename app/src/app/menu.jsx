@@ -6,7 +6,7 @@ import { fetchBranches, fetchMenu, friendlyError } from '../api';
 import { Button, Notice, Stepper, T, tap } from '../components/ui';
 import { isActiveOrder, isRecentDemoOrder } from '../orderWatcher';
 import { useStore } from '../store';
-import { colors, fonts, naira, radius } from '../theme';
+import { colors, fonts, naira, radius, themed } from '../theme';
 
 const STATUS_LABEL = {
   placed: 'Sent',
@@ -362,8 +362,8 @@ export default function Menu() {
 // Module level so SectionList always gets the same object.
 const VIEWABILITY = { itemVisiblePercentThreshold: 60 };
 
-const s = StyleSheet.create({
-  top: { backgroundColor: 'rgba(27,18,13,0.97)', borderBottomWidth: 1, borderBottomColor: colors.line },
+const s = themed(() => StyleSheet.create({
+  top: { backgroundColor: colors.bar, borderBottomWidth: 1, borderBottomColor: colors.line },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingBottom: 10 },
   mark: { width: 40, height: 40, borderRadius: 12, overflow: 'hidden' },
   iconBtn: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 8 },
@@ -382,7 +382,7 @@ const s = StyleSheet.create({
   emoji: { width: 52, height: 52, borderRadius: 12, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   add: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.paprika, alignItems: 'center', justifyContent: 'center' },
   soldOut: { borderWidth: 1, borderColor: colors.bad + '66', borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 3 },
-  cartWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14, paddingTop: 10, backgroundColor: 'rgba(27,18,13,0.94)', borderTopWidth: 1, borderTopColor: colors.line },
+  cartWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14, paddingTop: 10, backgroundColor: colors.bar, borderTopWidth: 1, borderTopColor: colors.line },
   cartBar: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.paprika, borderRadius: radius.lg, paddingHorizontal: 16, paddingVertical: 15 },
   badge: { minWidth: 26, height: 26, borderRadius: 13, paddingHorizontal: 6, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
-});
+}));

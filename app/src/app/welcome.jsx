@@ -9,7 +9,7 @@ import { Button, T, tap } from '../components/ui';
 import { notificationsAvailable } from '../notifications';
 import { turnNotificationsOn } from '../pushSync';
 import { useStore } from '../store';
-import { colors, fonts, radius } from '../theme';
+import { colors, fonts, radius, themed } from '../theme';
 
 const AUTO_ADVANCE_MS = 3500;
 
@@ -194,12 +194,12 @@ function Slide({ slide, width, height }) {
   );
 }
 
-const s = StyleSheet.create({
+const s = themed(() => StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, height: 36 },
   slide: { flex: 1, justifyContent: 'center', gap: 36 },
   artWrap: { alignItems: 'center', justifyContent: 'center', height: 240, gap: 18 },
-  glow: { position: 'absolute', width: 230, height: 230, borderRadius: 115, backgroundColor: 'rgba(200,69,28,0.18)' },
+  glow: { position: 'absolute', width: 230, height: 230, borderRadius: 115, backgroundColor: colors.glow },
   logo: { width: 96, height: 96, borderRadius: 26, overflow: 'hidden', borderWidth: 1, borderColor: colors.line },
   artRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   bubble: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
@@ -209,4 +209,4 @@ const s = StyleSheet.create({
   dot: { width: 8, height: 8, borderRadius: radius.pill, backgroundColor: colors.line },
   dotOn: { width: 24, backgroundColor: colors.gold },
   actions: { paddingHorizontal: 20, gap: 10 },
-});
+}));

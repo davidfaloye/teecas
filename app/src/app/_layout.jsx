@@ -71,7 +71,7 @@ function Root() {
   if (!done) return null;
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style={colors.statusBar} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'slide_from_right' }}>
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
         <Stack.Screen name="welcome" options={{ animation: 'fade', gestureEnabled: false }} />

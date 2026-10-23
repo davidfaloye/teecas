@@ -9,7 +9,7 @@ import { Button, Card, Header, Notice, T } from '../components/ui';
 import { pushTokenForOrder } from '../notifications';
 import { validPhone } from '../phone';
 import { useStore } from '../store';
-import { colors, fonts, naira, radius } from '../theme';
+import { colors, fonts, naira, radius, themed } from '../theme';
 
 export default function Checkout() {
   const { cart, subtotal, customer, setCustomer, clearCart, saveOrder, markSoldOut, open, settings, pushToken, setPushToken, account } = useStore();
@@ -209,10 +209,10 @@ export default function Checkout() {
   );
 }
 
-const s = StyleSheet.create({
-  signin: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.gold + '66', backgroundColor: 'rgba(217,161,91,0.08)' },
-  pay: { flexDirection: 'row', gap: 12, alignItems: 'center', padding: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.gold, backgroundColor: 'rgba(217,161,91,0.08)' },
+const s = themed(() => StyleSheet.create({
+  signin: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.gold + '66', backgroundColor: colors.goldTint },
+  pay: { flexDirection: 'row', gap: 12, alignItems: 'center', padding: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.gold, backgroundColor: colors.goldTint },
   radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.gold },
-  foot: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: 'rgba(27,18,13,0.96)', borderTopWidth: 1, borderTopColor: colors.line },
-});
+  foot: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: colors.bar, borderTopWidth: 1, borderTopColor: colors.line },
+}));

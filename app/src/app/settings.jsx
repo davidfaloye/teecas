@@ -10,7 +10,7 @@ import { hasPermission, notificationsAvailable } from '../notifications';
 import { localPhone } from '../phone';
 import { turnNotificationsOff, turnNotificationsOn } from '../pushSync';
 import { useStore } from '../store';
-import { colors, fonts, radius } from '../theme';
+import { colors, fonts, radius, themed } from '../theme';
 
 export default function Settings() {
   const insets = useSafeAreaInsets();
@@ -91,6 +91,37 @@ export default function Settings() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Header title="Settings" />
       <ScrollView contentContainerStyle={{ padding: 16, gap: 18, paddingBottom: insets.bottom + 32 }}>
+        <Section title="Appearance">
+          <Card style={{ gap: 12 }}>
+            <View style={{ gap: 2 }}>
+              <T variant="bold">Theme</T>
+              <T variant="muted">How Teecas looks on this phone.</T>
+            </View>
+            <View style={s.seg} accessibilityRole="radiogroup">
+              {THEME_CHOICES.map(([key, label]) => {
+                const chosen = settings.theme === key;
+                return (
+                  <Pressable
+                    key={key}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: chosen }}
+                    onPress={() => {
+                      if (chosen) return;
+                      tap();
+                      updateSettings({ theme: key });
+                    }}
+                    style={[s.segBtn, chosen && { backgroundColor: colors.paprika }]}
+                  >
+                    <T variant="medium" style={{ color: chosen ? colors.onAccent : colors.creamDim, fontFamily: fonts.semibold }}>
+                      {label}
+                    </T>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Card>
+        </Section>
+
         <Section title="Notifications">
           <Card style={{ gap: 12 }}>
             <View style={s.row}>
@@ -103,7 +134,7 @@ export default function Settings() {
                 onValueChange={toggle}
                 disabled={busy || !available}
                 trackColor={{ false: colors.bg2, true: colors.paprika }}
-                thumbColor={on ? colors.cream : colors.creamDim}
+                thumbColor={on ? colors.onAccent : colors.thumbOff}
                 ios_backgroundColor={colors.bg2}
                 accessibilityLabel="Order update notifications"
               />
@@ -233,7 +264,14 @@ function Link({ label, onPress, divider }) {
   );
 }
 
-const s = StyleSheet.create({
+const THEME_CHOICES = [
+  ['light', 'Light'],
+  ['dark', 'Dark'],
+];
+
+const s = themed(() => StyleSheet.create({
+  seg: { flexDirection: 'row', padding: 4, gap: 4, borderRadius: radius.pill, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
+  segBtn: { flex: 1, minHeight: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   link: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderRadius: radius.sm },
-});
+}));

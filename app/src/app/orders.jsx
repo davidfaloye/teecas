@@ -9,14 +9,15 @@ import { useStore } from '../store';
 import { colors, dayAndClock, naira } from '../theme';
 import { useMyOrders } from '../useMyOrders';
 
+// Colour names, not values, so they follow the theme.
 const STATUS = {
-  placed: ['Sent', colors.creamDim],
-  accepted: ['Accepted', colors.gold],
-  preparing: ['Being prepared', colors.gold],
-  ready: ['Ready', colors.gold],
-  out_for_delivery: ['On the way', colors.gold],
-  completed: ['Delivered', colors.good],
-  cancelled: ['Cancelled', colors.bad],
+  placed: ['Sent', 'creamDim'],
+  accepted: ['Accepted', 'gold'],
+  preparing: ['Being prepared', 'gold'],
+  ready: ['Ready', 'gold'],
+  out_for_delivery: ['On the way', 'gold'],
+  completed: ['Delivered', 'good'],
+  cancelled: ['Cancelled', 'bad'],
 };
 
 export default function MyOrders() {
@@ -59,7 +60,7 @@ export default function MyOrders() {
         }
         ListFooterComponent={mine.loadingMore ? <ActivityIndicator color={colors.gold} style={{ marginVertical: 12 }} /> : null}
         renderItem={({ item: o }) => {
-          const st = o.gone ? ['No longer available', colors.muted] : STATUS[o.lastStatus];
+          const st = o.gone ? ['No longer available', colors.muted] : STATUS[o.lastStatus] && [STATUS[o.lastStatus][0], colors[STATUS[o.lastStatus][1]]];
           return (
             <Pressable
               accessibilityRole="button"

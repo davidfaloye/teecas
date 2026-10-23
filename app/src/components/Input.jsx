@@ -1,6 +1,6 @@
 import { forwardRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { colors, fonts, radius } from '../theme';
+import { colors, fonts, radius, themed } from '../theme';
 import { T } from './ui';
 
 // A labelled text field. password: hides what's typed, with a Show / Hide switch.
@@ -16,6 +16,7 @@ export const Input = forwardRef(function Input({ label, error, hint, multiline, 
           ref={ref}
           placeholderTextColor={colors.muted}
           selectionColor={colors.gold}
+          keyboardAppearance={colors.keyboard}
           style={[s.input, multiline && { minHeight: 76, textAlignVertical: 'top' }, password && { paddingRight: 70 }, error ? { borderColor: colors.bad } : null]}
           accessibilityLabel={label}
           multiline={multiline}
@@ -49,7 +50,7 @@ export const Input = forwardRef(function Input({ label, error, hint, multiline, 
   );
 });
 
-const s = StyleSheet.create({
+const s = themed(() => StyleSheet.create({
   input: { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 12, color: colors.cream, fontFamily: fonts.body, fontSize: 16 },
   toggle: { position: 'absolute', right: 6, top: 0, bottom: 0, justifyContent: 'center', paddingHorizontal: 10 },
-});
+}));
