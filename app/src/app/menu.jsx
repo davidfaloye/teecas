@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Keyboard, Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, TextInput, View } from 'react-native';
@@ -144,12 +145,12 @@ export default function Menu() {
             </T>
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} style={s.roundBtn} hitSlop={6}>
-            <T style={{ fontSize: 21, lineHeight: 20, color: colors.cream }}>⚙︎</T>
+            <Ionicons name="settings-outline" size={20} color={colors.cream} />
           </Pressable>
         </View>
 
         <View style={s.search}>
-          <T style={{ fontSize: 15, lineHeight: 20, color: colors.muted }}>⌕</T>
+          <Ionicons name="search" size={17} color={colors.muted} />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -166,7 +167,7 @@ export default function Menu() {
           />
           {query ? (
             <Pressable onPress={clearSearch} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear search" style={s.clear}>
-              <T style={{ fontSize: 13, lineHeight: 16, color: colors.bg, fontFamily: fonts.bold }}>✕</T>
+              <Ionicons name="close" size={14} color={colors.bg} />
             </Pressable>
           ) : null}
         </View>
