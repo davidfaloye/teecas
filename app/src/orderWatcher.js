@@ -45,7 +45,7 @@ export function useOrderWatcher() {
           try {
             const { order } = await fetchOrder(saved.id, saved.token);
             const changed = order.status !== saved.lastStatus;
-            latest.current.updateOrder(saved.id, { lastStatus: order.status, branchName: order.branchName || saved.branchName, total: order.total });
+            latest.current.updateOrder(saved.id, { lastStatus: order.status, branchName: order.branchName || saved.branchName, fulfilment: order.fulfilment, total: order.total });
             if (changed && saved.lastStatus && !saved.push && latest.current.settings.notifications) {
               notifyStatusLocally(order, saved.token);
             }

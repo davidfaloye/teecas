@@ -1,7 +1,7 @@
 // Terms of service and privacy text shown in Settings. Plain data so Teecas can change the wording
 // without touching the screen. Have Teecas (and ideally a lawyer) review before the store release.
 
-export const TERMS_UPDATED = '22 October 2026';
+export const TERMS_UPDATED = '23 October 2026';
 
 export const TERMS = [
   {
@@ -32,16 +32,17 @@ export const TERMS = [
     id: 'payment',
     title: 'Payment',
     body: [
-      'You pay on delivery by cash, bank transfer or POS. No card details are taken in the app.',
-      'The delivery fee is not included in the total shown in the app. It is settled with the rider when your food arrives.',
+      'You pay on delivery, or at the counter when you collect a pickup order, by cash, bank transfer or POS. No card details are taken in the app.',
+      'The delivery fee is not included in the total shown in the app. It is settled with the rider when your food arrives. Pickup orders have no delivery fee.',
     ],
   },
   {
     id: 'delivery',
-    title: 'Delivery',
+    title: 'Delivery and pickup',
     body: [
       'Delivery times are estimates and can change with traffic, weather and how busy the kitchen is.',
       'If the rider cannot reach you at the address given, Teecas may cancel the order.',
+      'Pickup orders are collected from the branch you choose. We tell you when your order is ready; please collect it the same day.',
     ],
   },
   {

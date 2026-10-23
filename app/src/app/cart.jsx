@@ -82,7 +82,7 @@ export default function Cart() {
             Delivery fee excluded
           </T>
           <T variant="muted" style={{ marginTop: 4 }}>
-            You pay on delivery: cash, transfer or POS. The delivery fee is settled with the rider.
+            Choose delivery or pickup at checkout. You pay when you get your food: cash, transfer or POS. For delivery, the fee is settled with the rider.
           </T>
         </Card>
       </ScrollView>

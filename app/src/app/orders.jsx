@@ -19,6 +19,9 @@ const STATUS = {
   completed: ['Delivered', 'good'],
   cancelled: ['Cancelled', 'bad'],
 };
+// Pickup orders end differently.
+const PICKUP_STATUS = { ready: ['Ready for pickup', 'paprika'], completed: ['Collected', 'good'] };
+const statusOf = (o) => (o.fulfilment === 'pickup' && PICKUP_STATUS[o.lastStatus]) || STATUS[o.lastStatus];
 
 export default function MyOrders() {
   const { orders: phoneOrders } = useStore();
@@ -60,7 +63,8 @@ export default function MyOrders() {
         }
         ListFooterComponent={mine.loadingMore ? <ActivityIndicator color={colors.gold} style={{ marginVertical: 12 }} /> : null}
         renderItem={({ item: o }) => {
-          const st = o.gone ? ['No longer available', colors.muted] : STATUS[o.lastStatus] && [STATUS[o.lastStatus][0], colors[STATUS[o.lastStatus][1]]];
+          const s0 = statusOf(o);
+          const st = o.gone ? ['No longer available', colors.muted] : s0 && [s0[0], colors[s0[1]]];
           return (
             <Pressable
               accessibilityRole="button"

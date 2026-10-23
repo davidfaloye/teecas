@@ -194,7 +194,7 @@ export default function Menu() {
         <Pressable onPress={() => router.push({ pathname: '/order/[id]', params: { id: activeOrder.id, token: activeOrder.token || '' } })} style={s.activeOrder} accessibilityRole="button">
           <T variant="small" style={{ color: colors.cream, flexShrink: 1 }} numberOfLines={1}>
             Order #{activeOrder.number}
-            {STATUS_LABEL[activeOrder.lastStatus] ? ` · ${STATUS_LABEL[activeOrder.lastStatus]}` : ''} · {naira(activeOrder.total)}
+            {STATUS_LABEL[activeOrder.lastStatus] ? ` · ${activeOrder.fulfilment === 'pickup' && activeOrder.lastStatus === 'ready' ? 'Ready for pickup' : STATUS_LABEL[activeOrder.lastStatus]}` : ''} · {naira(activeOrder.total)}
           </T>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }}>
@@ -316,7 +316,7 @@ export default function Menu() {
                 <T variant="mono" style={{ fontSize: 11, textAlign: 'center' }}>
                   TEECAS AMALA EXPRESS BUKKA · BENIN CITY
                 </T>
-                <T variant="muted">Pay on delivery · cash, transfer or POS</T>
+                <T variant="muted">Delivery or pickup · pay with cash, transfer or POS</T>
                 <T variant="muted">Delivery fee excluded from prices</T>
               </View>
             ) : null

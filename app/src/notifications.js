@@ -119,11 +119,15 @@ export function statusMessage(status, order) {
     case 'preparing':
       return ['Being prepared', `Order ${n} is being prepared.`];
     case 'ready':
-      return ['Order ready', `Order ${n} is ready.`];
+      return order?.fulfilment === 'pickup'
+        ? ['Ready for pickup', `Order ${n} is ready. Pick it up at ${order?.branchName || 'Teecas'} and pay there.`]
+        : ['Order ready', `Order ${n} is ready.`];
     case 'out_for_delivery':
       return ['On the way', `Order ${n} is on its way. Have your payment ready.`];
     case 'completed':
-      return ['Delivered', `Order ${n} has been delivered. Enjoy your meal!`];
+      return order?.fulfilment === 'pickup'
+        ? ['Collected', `Order ${n} has been collected. Enjoy your meal!`]
+        : ['Delivered', `Order ${n} has been delivered. Enjoy your meal!`];
     case 'cancelled':
       return ['Order cancelled', `Order ${n} was cancelled${order?.cancelReason ? `: ${order.cancelReason}` : '.'}`];
     default:

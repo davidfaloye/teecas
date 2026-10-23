@@ -4,23 +4,35 @@
 
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { ActivityIndicator, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DONE_STATUSES, fetchOrder, friendlyError } from '../../api';
+import { demoBranches } from '../../demo';
 import { Row } from '../../components/Row';
 import { Button, Card, Header, Notice, T } from '../../components/ui';
 import { useStore } from '../../store';
 import { clock, colors, fonts, naira, themed } from '../../theme';
 
-// Same four stages as the Teecas order board. "Preparing" and "Ready" (used by the kitchen view)
-// count as Accepted.
-const STEPS = [
+// Same four stages as the Teecas order board. Delivery: sent, accepted, on the way, delivered.
+// Pickup: sent, accepted, ready for pickup, collected. "Preparing" (from the kitchen view) counts as
+// Accepted, and so does "ready" for a delivery order waiting for its rider.
+const DELIVERY_STEPS = [
   { status: 'placed', label: 'Order sent', hint: 'Waiting for Teecas to accept it' },
   { status: 'accepted', label: 'Accepted', hint: 'Your food is being prepared' },
   { status: 'out_for_delivery', label: 'On the way', hint: 'Have your payment ready' },
   { status: 'completed', label: 'Delivered', hint: 'Enjoy your meal' },
 ];
-const stepOf = (s) => (s === 'preparing' || s === 'ready' ? 'accepted' : s);
+const PICKUP_STEPS = [
+  { status: 'placed', label: 'Order sent', hint: 'Waiting for the branch to accept it' },
+  { status: 'accepted', label: 'Accepted', hint: 'Your food is being prepared' },
+  { status: 'ready', label: 'Ready for pickup', hint: 'Come and collect it. Pay at the counter' },
+  { status: 'completed', label: 'Collected', hint: 'Enjoy your meal' },
+];
+const stepOf = (s, pickup) => (s === 'preparing' || (s === 'ready' && !pickup) ? 'accepted' : s);
+
+// Opens the branch in Google Maps (the app if it's installed, otherwise the browser).
+const mapsUrl = (b) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([b.address, 'Benin City'].filter(Boolean).join(', '))}`;
 const first = (v) => (Array.isArray(v) ? v[0] : v) || '';
 
 // Branch numbers come in as 0803…, 234803… or +234803…
@@ -58,7 +70,7 @@ export default function OrderScreen() {
       if (d.whatsapp?.url) setWaUrl(d.whatsapp.url);
       setError('');
       finished.current = DONE_STATUSES.includes(d.order.status);
-      updateOrder(id, { lastStatus: d.order.status, branchName: d.order.branchName, total: d.order.total, gone: false });
+      updateOrder(id, { lastStatus: d.order.status, branchName: d.order.branchName, fulfilment: d.order.fulfilment, total: d.order.total, gone: false });
     } catch (e) {
       setError(e?.code === 'NOT_FOUND' ? 'Teecas can no longer find this order. If you were expecting it, call or WhatsApp the restaurant.' : friendlyError(e));
       if (e?.code === 'NOT_FOUND') {
@@ -81,15 +93,17 @@ export default function OrderScreen() {
   }, [load, live]);
 
   const done = Boolean(order && DONE_STATUSES.includes(order.status));
-  const steps = STEPS.filter((s) => order?.fulfilment !== 'pickup' || s.status !== 'out_for_delivery').map((s) =>
-    order?.fulfilment === 'pickup' && s.status === 'completed' ? { ...s, label: 'Picked up' } : s,
-  );
+  const pickup = order?.fulfilment === 'pickup';
+  const steps = pickup ? PICKUP_STEPS : DELIVERY_STEPS;
   const reached = new Map();
-  for (const h of order?.statusHistory || []) if (!reached.has(stepOf(h.status))) reached.set(stepOf(h.status), h.at);
-  const currentIdx = order ? Math.max(0, steps.findIndex((s) => s.status === stepOf(order.status))) : 0;
+  for (const h of order?.statusHistory || []) if (!reached.has(stepOf(h.status, pickup))) reached.set(stepOf(h.status, pickup), h.at);
+  const currentIdx = order ? Math.max(0, steps.findIndex((s) => s.status === stepOf(order.status, pickup))) : 0;
   const branchName = order?.branchName || '';
   const firstName = (order?.customer?.name || '').trim().split(/\s+/)[0];
-  const call = telUrl(branch?.phone);
+  // Sample orders have no server to ask, so their branch comes from the sample data.
+  const where = branch || (isDemo && order?.branchId ? demoBranches.find((b) => b.id === order.branchId) : null);
+  const call = telUrl(where?.phone || where?.whatsapp);
+  const readyNow = pickup && order?.status === 'ready';
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -134,7 +148,9 @@ export default function OrderScreen() {
                 <T variant="small">
                   {isDemo
                     ? 'WhatsApp opened with your order written out for Teecas. Tap send so the restaurant gets it.'
-                    : 'Teecas has your order and will send it from the branch that can get it to you fastest. WhatsApp also opened with it written out; tap send so they have it there too.'}
+                    : pickup
+                      ? `${branchName || 'Teecas'} has your order. We’ll tell you here when it’s ready to collect. WhatsApp also opened with it written out; tap send so they have it there too.`
+                      : 'Teecas has your order and will send it from the branch that can get it to you fastest. WhatsApp also opened with it written out; tap send so they have it there too.'}
                 </T>
                 {waUrl ? <Button label="Open WhatsApp again" kind="ghost" onPress={() => Linking.openURL(waUrl).catch(() => {})} /> : null}
               </Card>
@@ -145,7 +161,9 @@ export default function OrderScreen() {
             ) : isDemo ? (
               <Card style={{ gap: 6 }}>
                 <T variant="bold">Sent to Teecas on WhatsApp</T>
-                <T variant="small">The restaurant will confirm your order and delivery time in the WhatsApp chat.</T>
+                <T variant="small">
+                  {pickup ? 'The restaurant will tell you in the WhatsApp chat when it’s ready to collect.' : 'The restaurant will confirm your order and delivery time in the WhatsApp chat.'}
+                </T>
               </Card>
             ) : (
               <Card style={{ gap: 0 }}>
@@ -169,7 +187,17 @@ export default function OrderScreen() {
                             </T>
                           ) : null}
                         </T>
-                        {isNow ? <T variant="small">{s.status === 'accepted' && branchName ? `${branchName} is preparing your food` : s.hint}</T> : null}
+                        {isNow ? (
+                          <T variant="small">
+                            {s.status === 'accepted' && branchName
+                              ? `${branchName} is preparing your food`
+                              : s.status === 'ready' && branchName
+                                ? `Come to ${branchName} and collect it. Pay at the counter`
+                                : s.status === 'placed' && pickup && branchName
+                                  ? `Waiting for ${branchName} to accept it`
+                                  : s.hint}
+                          </T>
+                        ) : null}
                       </View>
                     </View>
                   );
@@ -182,6 +210,38 @@ export default function OrderScreen() {
               </Card>
             )}
 
+            {pickup && where && order.status !== 'cancelled' && order.status !== 'completed' ? (
+              <Card style={[{ gap: 10 }, readyNow && { borderColor: colors.paprika, borderWidth: 1.5 }]}>
+                <T variant="eyebrow">{readyNow ? 'Ready now · come and collect' : 'Pick up at'}</T>
+                <View style={{ gap: 2 }}>
+                  <T variant="h3">{where.name}</T>
+                  {where.address ? <T variant="small">{where.address}</T> : null}
+                  {where.landmark ? <T variant="muted">{where.landmark}</T> : null}
+                  {where.hours ? <T variant="muted">{where.hours}</T> : null}
+                </View>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  {where.address ? (
+                    <Button
+                      label="Directions"
+                      kind={readyNow ? 'primary' : 'ghost'}
+                      style={{ flex: 1 }}
+                      right={<Ionicons name="navigate-outline" size={18} color={readyNow ? colors.onAccent : colors.cream} />}
+                      onPress={() => Linking.openURL(mapsUrl(where)).catch(() => {})}
+                    />
+                  ) : null}
+                  {call ? (
+                    <Button
+                      label="Call"
+                      kind="ghost"
+                      style={{ flex: 1 }}
+                      right={<Ionicons name="call-outline" size={18} color={colors.cream} />}
+                      onPress={() => Linking.openURL(call).catch(() => {})}
+                    />
+                  ) : null}
+                </View>
+              </Card>
+            ) : null}
+
             <Card style={{ gap: 8 }}>
               <T variant="h3" style={{ marginBottom: 4 }}>
                 What you ordered
@@ -193,7 +253,7 @@ export default function OrderScreen() {
               )}
               {order.deliveryFee > 0 && <Row k="Delivery" v={naira(order.deliveryFee)} />}
               <View style={{ height: 1, backgroundColor: colors.line, marginVertical: 4 }} />
-              <Row k={order.paymentStatus === 'paid' ? 'Paid' : 'To pay on delivery'} v={naira(order.total)} big />
+              <Row k={order.paymentStatus === 'paid' ? 'Paid' : pickup ? 'To pay at pickup' : 'To pay on delivery'} v={naira(order.total)} big />
               {order.deliveryFeeExcluded ? (
                 <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }}>
                   Delivery fee excluded
@@ -202,10 +262,10 @@ export default function OrderScreen() {
               {order.fulfilment === 'delivery' && order.customer.address ? <T variant="muted">Delivering to {order.customer.address}</T> : null}
             </Card>
 
-            {call && branch ? (
+            {call && where && !(pickup && !['cancelled', 'completed'].includes(order.status)) ? (
               <Pressable onPress={() => Linking.openURL(call).catch(() => {})} accessibilityRole="button">
                 <T variant="small" style={{ textAlign: 'center', color: colors.gold, fontFamily: fonts.semibold }}>
-                  Call {branch.name}
+                  Call {where.name}
                 </T>
               </Pressable>
             ) : null}

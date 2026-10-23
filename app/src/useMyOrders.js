@@ -28,6 +28,7 @@ function toRow(o) {
     total: o.total,
     createdAt: o.createdAt,
     lastStatus: o.status,
+    fulfilment: o.fulfilment,
     token: o.trackingToken,
   };
 }

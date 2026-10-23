@@ -192,17 +192,29 @@ export async function fetchMenu() {
   return normalizeMenu(await request('/menu'));
 }
 
-// Orders are for delivery and carry no branch: Teecas assigns one when it accepts the order.
-// input: { customer: {name, phone, address}, note, lines: [{ item, qty }], pushToken?, auth? }
+// What's sold out at one branch, as a set of menu item ids. Used when a customer picks the
+// branch they'll collect a pickup order from.
+export async function fetchSoldOutAt(branchId) {
+  if (DEMO_MODE) return new Set(demoMenu().items.filter((i) => !i.available || demoSoldOutAt(branchId, i.name)).map((i) => i.id));
+  const menu = normalizeMenu(await request('/menu', { query: { branchId } }));
+  return new Set(menu.items.filter((i) => !i.available).map((i) => i.id));
+}
+
+// Delivery orders carry no branch: Teecas assigns one when it accepts the order. Pickup orders
+// name the branch the customer will collect from, and only that branch gets them.
+// input: { fulfilment: 'delivery' | 'pickup', branchId? (pickup), customer: {name, phone, address},
+//          note, lines: [{ item, qty }], pushToken?, auth? }
 // With auth (a signed-in customer's token) the order is saved to their account.
 export async function placeOrder(input) {
   if (DEMO_MODE) return placeDemoOrder(input);
+  const pickup = input.fulfilment === 'pickup';
   const d = await request('/orders', {
     method: 'POST',
     auth: input.auth || undefined,
     body: {
-      fulfilment: 'delivery',
-      customer: input.customer,
+      fulfilment: pickup ? 'pickup' : 'delivery',
+      branchId: pickup ? input.branchId : undefined,
+      customer: pickup ? { name: input.customer.name, phone: input.customer.phone } : input.customer,
       note: input.note,
       items: input.lines.map((l) => ({ id: l.item.id, qty: l.qty })),
       pushToken: input.pushToken || undefined,
@@ -314,8 +326,9 @@ export function orderMessage(o, phone, note) {
     ...o.items.map((i) => `${i.name} ~ ${i.qty}`),
     '',
     `Order: #${o.number}`,
-    `Delivery to: ${o.customer.address}`,
-    `Total: ${naira(o.total)} (pay on delivery, delivery fee excluded)`,
+    ...(o.fulfilment === 'pickup'
+      ? [`Pickup at ${o.branchName || 'the branch'} (as soon as it's ready)`, `Total: ${naira(o.total)} (pay at pickup)`]
+      : [`Delivery to: ${o.customer.address}`, `Total: ${naira(o.total)} (pay on delivery, delivery fee excluded)`]),
     `Name: ${o.customer.name}`,
     `Phone: ${phone}`,
   ];
@@ -323,27 +336,35 @@ export function orderMessage(o, phone, note) {
   return parts.join('\n');
 }
 
+// The sample data's branch sell-outs, matching the admin's demo seed.
+const demoSoldOutAt = (branchId, name) => (branchId === 'demo-uniben' && name === 'Big Turkey') || (branchId === 'demo-ringroad' && name === 'Ofada Sauce');
+
 function placeDemoOrder(input) {
-  const unavailable = input.lines.filter((l) => !l.item.available).map((l) => l.item.name);
+  const atBranch = input.fulfilment === 'pickup' ? input.branchId : null;
+  const unavailable = input.lines.filter((l) => !l.item.available || (atBranch && demoSoldOutAt(atBranch, l.item.name))).map((l) => l.item.name);
   if (unavailable.length) {
     throw new ApiError(`Sold out: ${unavailable.join(', ')}. Remove it to continue.`, 'ITEM_UNAVAILABLE', { unavailable });
   }
   const items = input.lines.map((l) => ({ name: l.item.name, qty: l.qty, price: l.item.price, lineTotal: l.item.price * l.qty }));
   const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
   const now = new Date().toISOString();
+  const pickup = input.fulfilment === 'pickup';
+  const branch = pickup ? demoBranches.find((b) => b.id === input.branchId) : null;
   const order = normalizeOrder({
     id: `demo-${Date.now()}`,
     number: `D${Math.floor(1000 + Math.random() * 9000)}`,
+    branchId: branch?.id || null,
+    branchName: branch?.name || '',
     status: 'placed',
     statusHistory: [{ status: 'placed', at: now }],
-    fulfilment: 'delivery',
+    fulfilment: pickup ? 'pickup' : 'delivery',
     items,
     subtotal,
     deliveryFee: 0,
-    deliveryFeeExcluded: true,
+    deliveryFeeExcluded: !pickup,
     total: subtotal,
     paymentStatus: 'unpaid',
-    customer: { name: input.customer.name, address: input.customer.address },
+    customer: { name: input.customer.name, address: pickup ? '' : input.customer.address },
     createdAt: now,
   });
   const msg = orderMessage(order, input.customer.phone, input.note);
