@@ -6,9 +6,10 @@ import { useFonts } from 'expo-font';
 import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { fetchMe, isSignedOutError } from '../api';
+import { Intro } from '../components/Intro';
 import { configureNotifications, onNotificationTap, setNotificationsEnabled } from '../notifications';
 import { useOrderWatcher } from '../orderWatcher';
 import { StoreProvider, useStore } from '../store';
@@ -36,6 +37,7 @@ function Root() {
     SpaceMono_700Bold,
   });
   const done = ready && (fontsLoaded || Boolean(fontError));
+  const [intro, setIntro] = useState(true); // the opening animation, over the app as it loads
 
   useEffect(() => {
     if (done) SplashScreen.hideAsync().catch(() => {});
@@ -71,7 +73,7 @@ function Root() {
   if (!done) return null;
   return (
     <>
-      <StatusBar style={colors.statusBar} />
+      <StatusBar style={intro ? 'dark' : colors.statusBar} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'slide_from_right' }}>
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
         <Stack.Screen name="welcome" options={{ animation: 'fade', gestureEnabled: false }} />
@@ -79,6 +81,7 @@ function Root() {
         <Stack.Screen name="menu" options={{ animation: 'fade' }} />
         <Stack.Screen name="order/[id]" options={{ gestureEnabled: false }} />
       </Stack>
+      {intro && <Intro onDone={() => setIntro(false)} />}
     </>
   );
 }
