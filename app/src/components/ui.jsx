@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -67,13 +68,13 @@ export function Stepper({ qty, onAdd, onRemove, label }) {
   return (
     <View style={styles.stepper}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Remove one ${label}`} hitSlop={8} onPress={() => { tap(); onRemove(); }} style={styles.stepBtn}>
-        <Text style={styles.stepText}>−</Text>
+        <Ionicons name="remove" size={18} color={colors.cream} />
       </Pressable>
       <Text style={styles.stepQty} accessibilityLabel={`${qty} ${label}`}>
         {qty}
       </Text>
       <Pressable accessibilityRole="button" accessibilityLabel={`Add one ${label}`} hitSlop={8} onPress={() => { tap(); onAdd(); }} style={styles.stepBtn}>
-        <Text style={styles.stepText}>+</Text>
+        <Ionicons name="add" size={18} color={colors.cream} />
       </Pressable>
     </View>
   );
@@ -90,7 +91,7 @@ export function Header({ title, subtitle, back = true, right }) {
     <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
       {back ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Go back" hitSlop={10} onPress={goBack} style={styles.back}>
-          <Text style={styles.backText}>←</Text>
+          <Ionicons name="arrow-back" size={20} color={colors.cream} />
         </Pressable>
       ) : null}
       <View style={{ flex: 1 }}>
@@ -139,11 +140,9 @@ export const styles = themed(() => StyleSheet.create({
   btnText: { fontFamily: fonts.bold, fontSize: 16 },
   stepper: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg2, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line },
   stepBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  stepText: { color: colors.cream, fontSize: 20, fontFamily: fonts.medium, lineHeight: 22 },
   stepQty: { minWidth: 22, textAlign: 'center', color: colors.cream, fontFamily: fonts.monoBold, fontSize: 15 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.line, backgroundColor: colors.bg },
   back: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
-  backText: { color: colors.cream, fontSize: 20, lineHeight: 22 },
   dots: { flexDirection: 'row', gap: 5, justifyContent: 'center', marginTop: 18 },
   dot: { width: 4, height: 4, borderRadius: 2 },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, padding: 16 },

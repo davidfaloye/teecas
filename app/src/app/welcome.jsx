@@ -1,6 +1,7 @@
 // First-launch tour: four swipeable cards showing how simple ordering is.
 // Shown once, then the sign-in / guest page (start.jsx).
 
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
@@ -173,7 +174,7 @@ function Slide({ slide, width, height }) {
           {slide.art.map((a, i) =>
             a === '+' ? (
               <View key={i} style={s.plus}>
-                <T style={{ color: colors.white, fontSize: 24, lineHeight: 28, fontFamily: fonts.medium }}>+</T>
+                <Ionicons name="add" size={26} color={colors.white} />
               </View>
             ) : (
               <View key={i} style={[s.bubble, slide.art.length === 1 && s.bubbleBig]}>

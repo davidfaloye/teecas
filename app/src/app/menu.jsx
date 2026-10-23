@@ -196,9 +196,12 @@ export default function Menu() {
             Order #{activeOrder.number}
             {STATUS_LABEL[activeOrder.lastStatus] ? ` · ${STATUS_LABEL[activeOrder.lastStatus]}` : ''} · {naira(activeOrder.total)}
           </T>
-          <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }}>
-            Track it →
-          </T>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }}>
+              Track it
+            </T>
+            <Ionicons name="arrow-forward" size={14} color={colors.gold} />
+          </View>
         </Pressable>
       )}
 
@@ -301,7 +304,7 @@ export default function Menu() {
                     }}
                     style={({ pressed }) => [s.add, pressed && { transform: [{ scale: 0.94 }] }]}
                   >
-                    <T style={{ fontSize: 22, lineHeight: 26, color: colors.white, fontFamily: fonts.medium }}>+</T>
+                    <Ionicons name="add" size={24} color={colors.white} />
                   </Pressable>
                 )}
               </View>

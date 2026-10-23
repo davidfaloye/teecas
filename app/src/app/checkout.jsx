@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -115,7 +116,7 @@ export default function Checkout() {
                 <T variant="bold">Have an account? Sign in</T>
                 <T variant="muted">Your details fill in and your orders are saved, on any phone. Or carry on as a guest.</T>
               </View>
-              <T style={{ color: colors.gold, fontFamily: fonts.medium, fontSize: 18 }}>›</T>
+              <Ionicons name="chevron-forward" size={18} color={colors.gold} />
             </Pressable>
           ) : null}
           <Card style={{ gap: 14 }}>

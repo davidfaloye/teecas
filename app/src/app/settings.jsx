@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -259,7 +260,7 @@ function Link({ label, onPress, divider }) {
       <T variant="medium" style={{ flex: 1 }}>
         {label}
       </T>
-      <T style={{ color: colors.muted, fontFamily: fonts.medium }}>›</T>
+      <Ionicons name="chevron-forward" size={18} color={colors.muted} />
     </Pressable>
   );
 }
