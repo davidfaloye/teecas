@@ -1,5 +1,5 @@
-// Create an account: name, phone number, email, password and (optionally) a delivery address.
-// They sign in with the phone number; the email is where a password reset code goes. Orders
+// Create an account: just a name, email and password. They sign in with the email, and a password
+// reset code goes there too. Phone number and delivery address are asked for at checkout. Orders
 // already placed on this phone as a guest move into the new account.
 
 import { router } from 'expo-router';
@@ -10,7 +10,6 @@ import { DEMO_MODE, friendlyError, signUp } from '../api';
 import { guestOrderKeys, leaveAuth } from '../authFlow';
 import { Input } from '../components/Input';
 import { Button, Card, Header, Notice, T } from '../components/ui';
-import { validPhone } from '../phone';
 import { useStore } from '../store';
 import { colors, fonts } from '../theme';
 
@@ -21,50 +20,43 @@ export default function SignUp() {
   const insets = useSafeAreaInsets();
   const { customer, orders, startSession } = useStore();
   const [name, setName] = useState(customer.name);
-  const [phone, setPhone] = useState(customer.phone);
   const [email, setEmail] = useState('');
-  const [address, setAddress] = useState(customer.address);
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
-  const [taken, setTaken] = useState(''); // 'phone' | 'email': another account already has it
+  const [taken, setTaken] = useState(false); // another account already uses this email
   const [busy, setBusy] = useState(false);
-  const phoneRef = useRef(null);
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
 
   const field = (key, set) => (v) => {
     set(v);
     setErrors((x) => ({ ...x, [key]: '' }));
-    if (key === taken) setTaken('');
+    if (key === 'email') setTaken(false);
   };
 
   async function submit() {
     if (busy) return;
     const e = {};
     if (name.trim().length < 2) e.name = 'Enter your name.';
-    if (!validPhone(phone)) e.phone = 'Enter a phone number like 0803 123 4567.';
     if (!validEmail(email)) e.email = 'Enter your email, like ada@example.com.';
     if (password.length < MIN_PASSWORD) e.password = `Use at least ${MIN_PASSWORD} characters.`;
     setErrors(e);
     setError('');
-    setTaken('');
+    setTaken(false);
     if (Object.keys(e).length) return;
     setBusy(true);
     try {
       const session = await signUp({
         name: name.trim(),
-        phone: phone.trim(),
         email: email.trim(),
         password,
-        address: address.trim(),
         claim: guestOrderKeys(orders),
       });
       startSession(session);
       leaveAuth();
     } catch (err) {
-      if (err?.code === 'PHONE_TAKEN') setTaken('phone');
-      else if (err?.code === 'EMAIL_TAKEN') setTaken('email');
+      if (err?.code === 'EMAIL_TAKEN') setTaken(true);
       else setError(friendlyError(err));
     } finally {
       setBusy(false);
@@ -87,21 +79,6 @@ export default function SignUp() {
               textContentType="name"
               maxLength={80}
               returnKeyType="next"
-              onSubmitEditing={() => phoneRef.current?.focus()}
-            />
-            <Input
-              ref={phoneRef}
-              label="Phone number"
-              value={phone}
-              onChangeText={field('phone', setPhone)}
-              error={errors.phone}
-              hint="You’ll sign in with this number."
-              keyboardType="phone-pad"
-              autoComplete="tel"
-              textContentType="telephoneNumber"
-              placeholder="0803 123 4567"
-              maxLength={20}
-              returnKeyType="next"
               onSubmitEditing={() => emailRef.current?.focus()}
             />
             <Input
@@ -110,7 +87,7 @@ export default function SignUp() {
               value={email}
               onChangeText={field('email', setEmail)}
               error={errors.email}
-              hint="If you forget your password, we’ll send a code here."
+              hint="You’ll sign in with this email."
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -123,7 +100,7 @@ export default function SignUp() {
             />
             {taken ? (
               <Notice>
-                {taken === 'phone' ? 'This number already has an account.' : 'This email already has an account.'}{' '}
+                This email already has an account.{' '}
                 <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }} onPress={() => router.replace('/signin')}>
                   Sign in instead
                 </T>
@@ -140,15 +117,8 @@ export default function SignUp() {
               autoComplete="new-password"
               textContentType="newPassword"
               maxLength={200}
-            />
-            <Input
-              label="Delivery address (optional)"
-              value={address}
-              onChangeText={setAddress}
-              multiline
-              placeholder="House number, street, area, landmark"
-              autoComplete="street-address"
-              maxLength={300}
+              returnKeyType="go"
+              onSubmitEditing={submit}
             />
             {error ? <Notice tone="bad">{error}</Notice> : null}
             <Button label="Create account" onPress={submit} loading={busy} />

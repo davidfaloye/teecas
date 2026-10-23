@@ -1,4 +1,4 @@
-// Sign in with phone number and password. Orders placed on this phone as a guest move into the
+// Sign in with email and password. Orders placed on this phone as a guest move into the
 // account, and every order on the account shows in My orders, on any phone.
 
 import { router } from 'expo-router';
@@ -9,14 +9,15 @@ import { DEMO_MODE, friendlyError, signIn } from '../api';
 import { guestOrderKeys, leaveAuth } from '../authFlow';
 import { Input } from '../components/Input';
 import { Button, Card, Header, Notice, T } from '../components/ui';
-import { validPhone } from '../phone';
 import { useStore } from '../store';
 import { colors, fonts } from '../theme';
 
+const validEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
+
 export default function SignIn() {
   const insets = useSafeAreaInsets();
-  const { customer, orders, startSession } = useStore();
-  const [phone, setPhone] = useState(customer.phone);
+  const { orders, startSession } = useStore();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
@@ -26,14 +27,14 @@ export default function SignIn() {
   async function submit() {
     if (busy) return;
     const e = {};
-    if (!validPhone(phone)) e.phone = 'Enter a phone number like 0803 123 4567.';
+    if (!validEmail(email)) e.email = 'Enter your email, like ada@example.com.';
     if (!password) e.password = 'Enter your password.';
     setErrors(e);
     setError('');
     if (Object.keys(e).length) return;
     setBusy(true);
     try {
-      const session = await signIn({ phone: phone.trim(), password, claim: guestOrderKeys(orders) });
+      const session = await signIn({ login: email.trim(), password, claim: guestOrderKeys(orders) });
       startSession(session);
       leaveAuth();
     } catch (err) {
@@ -51,18 +52,20 @@ export default function SignIn() {
           {DEMO_MODE ? <Notice>Accounts need the Teecas server. This preview runs on sample data, so signing in won’t work here.</Notice> : null}
           <Card style={{ gap: 14 }}>
             <Input
-              label="Phone number"
-              value={phone}
+              label="Email"
+              value={email}
               onChangeText={(v) => {
-                setPhone(v);
-                setErrors((x) => ({ ...x, phone: '' }));
+                setEmail(v);
+                setErrors((x) => ({ ...x, email: '' }));
               }}
-              error={errors.phone}
-              keyboardType="phone-pad"
-              autoComplete="tel"
-              textContentType="telephoneNumber"
-              placeholder="0803 123 4567"
-              maxLength={20}
+              error={errors.email}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              textContentType="emailAddress"
+              placeholder="ada@example.com"
+              maxLength={120}
               returnKeyType="next"
               onSubmitEditing={() => passwordRef.current?.focus()}
             />
@@ -84,7 +87,7 @@ export default function SignIn() {
             />
             <Pressable
               accessibilityRole="button"
-              onPress={() => router.replace({ pathname: '/forgot-password', params: { login: phone.trim() } })}
+              onPress={() => router.replace({ pathname: '/forgot-password', params: { login: email.trim() } })}
               hitSlop={8}
               style={{ alignSelf: 'flex-end', marginTop: -4 }}
             >

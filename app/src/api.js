@@ -247,9 +247,9 @@ function session(d) {
 }
 
 // claim: [{ id, token }] guest orders on this phone to move into the account.
-export async function signUp({ name, phone, email, password, address, claim }) {
+export async function signUp({ name, email, password, claim }) {
   if (DEMO_MODE) throw accountsOff();
-  return session(await request('/account/signup', { method: 'POST', body: { name, phone, email, password, address, claim } }));
+  return session(await request('/account/signup', { method: 'POST', body: { name, email, password, claim } }));
 }
 
 // Forgot password, step 1: emails a 6-digit code to the account. login: phone number or email.
@@ -267,9 +267,10 @@ export async function resetPassword({ login, code, password, claim }) {
   return session(await request('/account/reset', { method: 'POST', body: { login, code, password, claim } }));
 }
 
-export async function signIn({ phone, password, claim }) {
+// login: the account's email.
+export async function signIn({ login, password, claim }) {
   if (DEMO_MODE) throw accountsOff();
-  return session(await request('/account/signin', { method: 'POST', body: { phone, password, claim } }));
+  return session(await request('/account/signin', { method: 'POST', body: { login, password, claim } }));
 }
 
 export async function fetchMe(auth) {

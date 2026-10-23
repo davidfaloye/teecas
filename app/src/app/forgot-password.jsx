@@ -43,7 +43,7 @@ export default function ForgotPassword() {
     if (busy) return;
     const v = login.trim();
     if (!looksLikeEmail(v) && !validPhone(v)) {
-      setErrors({ login: 'Enter the phone number or email on your account.' });
+      setErrors({ login: 'Enter the email on your account.' });
       return;
     }
     setErrors({});
@@ -89,9 +89,9 @@ export default function ForgotPassword() {
 
           {step === 'ask' ? (
             <Card style={{ gap: 14 }}>
-              <T variant="small">Enter the phone number or email on your account. We’ll email you a 6-digit code to reset your password.</T>
+              <T variant="small">Enter the email on your account. We’ll email you a 6-digit code to reset your password.</T>
               <Input
-                label="Phone number or email"
+                label="Email"
                 value={login}
                 onChangeText={(v) => {
                   setLogin(v);
@@ -101,7 +101,7 @@ export default function ForgotPassword() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="email-address"
-                placeholder="0803 123 4567 or ada@example.com"
+                placeholder="ada@example.com"
                 maxLength={120}
                 returnKeyType="send"
                 onSubmitEditing={sendCode}
