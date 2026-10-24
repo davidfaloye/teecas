@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchBranches, fetchSoldOutAt, friendlyError, placeOrder } from '../api';
 import { Input } from '../components/Input';
 import { Row } from '../components/Row';
-import { Button, Card, Header, Notice, T } from '../components/ui';
+import { ErrorNotice, Button, Card, Header, Notice, T } from '../components/ui';
 import { pushTokenForOrder } from '../notifications';
 import { validPhone } from '../phone';
 import { useStore } from '../store';
@@ -153,7 +153,11 @@ export default function Checkout() {
       // Same as the website: the order goes to Teecas's WhatsApp, pre-written.
       if (waUrl) Linking.openURL(waUrl).catch(() => {});
     } catch (err) {
-      setError(friendlyError(err));
+      setError(
+        err?.code === 'TIMEOUT'
+          ? 'This is taking longer than usual. Your order may still have gone through, so check My orders before you place it again.'
+          : friendlyError(err),
+      );
       if (err?.code === 'ITEM_UNAVAILABLE') {
         // Sold out at the pickup branch only: show it there, don't mark it sold out everywhere.
         if (pickup) checkSoldOut(chosen.id);
@@ -163,7 +167,7 @@ export default function Checkout() {
         if (pickup) {
           setError(`${chosen?.name || 'That branch'} isn’t taking orders right now. Choose another branch, or switch to delivery.`);
           setBranches(null); // reload which branches are open
-        } else setError("Teecas isn't taking orders right now. Please try again later.");
+        } else setError("Teecas Amala isn't taking orders right now. Please try again later.");
       }
     } finally {
       submitting.current = false;
@@ -229,7 +233,7 @@ export default function Checkout() {
                 </View>
               ) : branchError ? (
                 <>
-                  <Notice tone="bad">{branchError}</Notice>
+                  <ErrorNotice>{branchError}</ErrorNotice>
                   <Button label="Try again" kind="ghost" onPress={() => setBranches(null)} />
                 </>
               ) : (
@@ -363,16 +367,16 @@ export default function Checkout() {
           </Card>
 
           <T variant="muted" style={{ textAlign: 'center' }}>
-            When you place your order, WhatsApp opens with it written out for Teecas. Tap send so the restaurant has it.
+            When you place your order, WhatsApp opens with it written out for Teecas Amala. Tap send so the restaurant has it.
           </T>
-          {error ? <Notice tone="bad">{error}</Notice> : null}
+          <ErrorNotice>{error}</ErrorNotice>
         </ScrollView>
       </KeyboardAvoidingView>
       <View style={[s.foot, { paddingBottom: insets.bottom + 12 }]}>
         <Button label={`Place order · ${naira(subtotal)}`} onPress={submit} loading={busy} disabled={!open || (pickup && soldOutAtBranch.length > 0)} />
         {!open && (
           <T variant="small" style={{ color: colors.bad, textAlign: 'center', marginTop: 6 }}>
-            Teecas isn’t taking orders right now.
+            Teecas Amala isn’t taking orders right now.
           </T>
         )}
       </View>

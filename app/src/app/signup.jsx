@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEMO_MODE, friendlyError, signUp } from '../api';
 import { guestOrderKeys, leaveAuth } from '../authFlow';
 import { Input } from '../components/Input';
-import { Button, Card, Header, Notice, T } from '../components/ui';
+import { ErrorNotice, Button, Card, Header, Notice, T } from '../components/ui';
 import { useStore } from '../store';
 import { colors, fonts } from '../theme';
 
@@ -68,7 +68,7 @@ export default function SignUp() {
       <Header title="Create an account" subtitle="Faster checkout, your orders on any phone" />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
-          {DEMO_MODE ? <Notice>Accounts need the Teecas server. This preview runs on sample data, so sign-up won’t work here.</Notice> : null}
+          {DEMO_MODE ? <Notice>Accounts need the Teecas Amala server. This preview runs on sample data, so sign-up won’t work here.</Notice> : null}
           <Card style={{ gap: 14 }}>
             <Input
               label="Name"
@@ -120,7 +120,7 @@ export default function SignUp() {
               returnKeyType="go"
               onSubmitEditing={submit}
             />
-            {error ? <Notice tone="bad">{error}</Notice> : null}
+            <ErrorNotice>{error}</ErrorNotice>
             <Button label="Create account" onPress={submit} loading={busy} />
             <T variant="muted" style={{ textAlign: 'center' }}>
               By creating an account you agree to the{' '}

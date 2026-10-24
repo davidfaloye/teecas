@@ -7,11 +7,13 @@ import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { fetchMe, isSignedOutError } from '../api';
 import { Intro } from '../components/Intro';
 import { configureNotifications, onNotificationTap, setNotificationsEnabled } from '../notifications';
-import { useOrderWatcher } from '../orderWatcher';
+import { isActiveOrder, useOrderWatcher } from '../orderWatcher';
+import { syncPush } from '../pushSync';
 import { StoreProvider, useStore } from '../store';
 import { colors } from '../theme';
 
@@ -19,7 +21,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 configureNotifications();
 
 function Root() {
-  const { ready, settings, orders, account, updateAccountCustomer, signOut } = useStore();
+  const { ready, settings, orders, account, updateAccountCustomer, signOut, updateOrder, pushToken, setPushToken } = useStore();
   const ordersRef = useRef(orders);
   useEffect(() => {
     ordersRef.current = orders;
@@ -48,6 +50,28 @@ function Root() {
   }, [settings.notifications]);
 
   useOrderWatcher();
+
+  // Status updates must reach the phone when the app is closed, and that only works through push.
+  // Keep this phone's push token attached to every order still on its way: at launch, whenever the
+  // app comes back to the front (the customer may have just allowed notifications in the phone's
+  // settings), and whenever an order is still waiting for its token.
+  const pushRef = useRef(null);
+  useEffect(() => {
+    pushRef.current = { orders, updateOrder, pushToken, setPushToken, on: settings.notifications };
+  });
+  const waitingForPush = orders.filter((o) => isActiveOrder(o) && !o.push).length;
+  useEffect(() => {
+    if (!ready) return undefined;
+    const run = () => {
+      const c = pushRef.current;
+      if (c?.on) syncPush(c).catch(() => {});
+    };
+    run();
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st === 'active') run();
+    });
+    return () => sub.remove();
+  }, [ready, waitingForPush, settings.notifications]);
 
   // Once per launch: check the saved sign-in still works and pick up account changes. Signs out
   // only when the server says the sign-in is no longer valid, never because the phone is offline.

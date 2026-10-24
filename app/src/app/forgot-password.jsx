@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEMO_MODE, friendlyError, requestPasswordReset, resetPassword } from '../api';
 import { guestOrderKeys, leaveAuth } from '../authFlow';
 import { Input } from '../components/Input';
-import { Button, Card, Header, Notice, T } from '../components/ui';
+import { ErrorNotice, Button, Card, Header, Notice, T } from '../components/ui';
 import { validPhone } from '../phone';
 import { useStore } from '../store';
 import { colors, fonts } from '../theme';
@@ -85,7 +85,7 @@ export default function ForgotPassword() {
       <Header title="Forgot password" subtitle={step === 'ask' ? 'We’ll email you a code' : 'Choose a new password'} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
-          {DEMO_MODE ? <Notice>Accounts need the Teecas server. This preview runs on sample data, so this won’t work here.</Notice> : null}
+          {DEMO_MODE ? <Notice>Accounts need the Teecas Amala server. This preview runs on sample data, so this won’t work here.</Notice> : null}
 
           {step === 'ask' ? (
             <Card style={{ gap: 14 }}>
@@ -106,7 +106,7 @@ export default function ForgotPassword() {
                 returnKeyType="send"
                 onSubmitEditing={sendCode}
               />
-              {error ? <Notice tone="bad">{error}</Notice> : null}
+              <ErrorNotice>{error}</ErrorNotice>
               <Button label="Email me a code" onPress={sendCode} loading={busy} />
             </Card>
           ) : (
@@ -147,7 +147,7 @@ export default function ForgotPassword() {
                 returnKeyType="go"
                 onSubmitEditing={submit}
               />
-              {error ? <Notice tone="bad">{error}</Notice> : null}
+              <ErrorNotice>{error}</ErrorNotice>
               <Button label="Reset password and sign in" onPress={submit} loading={busy} />
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
                 <Pressable

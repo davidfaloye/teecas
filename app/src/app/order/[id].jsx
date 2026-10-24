@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DONE_STATUSES, fetchOrder, friendlyError } from '../../api';
 import { demoBranches } from '../../demo';
 import { Row } from '../../components/Row';
-import { Button, Card, Header, Notice, T } from '../../components/ui';
+import { Button, Card, ErrorNotice, Header, Notice, T, Working } from '../../components/ui';
 import { useStore } from '../../store';
 import { clock, colors, fonts, naira, themed } from '../../theme';
 
@@ -18,7 +18,7 @@ import { clock, colors, fonts, naira, themed } from '../../theme';
 // Pickup: sent, accepted, ready for pickup, collected. "Preparing" (from the kitchen view) counts as
 // Accepted, and so does "ready" for a delivery order waiting for its rider.
 const DELIVERY_STEPS = [
-  { status: 'placed', label: 'Order sent', hint: 'Waiting for Teecas to accept it' },
+  { status: 'placed', label: 'Order sent', hint: 'Waiting for Teecas Amala to accept it' },
   { status: 'accepted', label: 'Accepted', hint: 'Your food is being prepared' },
   { status: 'out_for_delivery', label: 'On the way', hint: 'Have your payment ready' },
   { status: 'completed', label: 'Delivered', hint: 'Enjoy your meal' },
@@ -59,6 +59,7 @@ export default function OrderScreen() {
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(live);
+  const [slow, setSlow] = useState(false);
   const finished = useRef(false);
 
   const load = useCallback(async () => {
@@ -69,10 +70,19 @@ export default function OrderScreen() {
       setBranch(d.branch);
       if (d.whatsapp?.url) setWaUrl(d.whatsapp.url);
       setError('');
+      setSlow(false);
       finished.current = DONE_STATUSES.includes(d.order.status);
       updateOrder(id, { lastStatus: d.order.status, branchName: d.order.branchName, fulfilment: d.order.fulfilment, total: d.order.total, gone: false });
     } catch (e) {
-      setError(e?.code === 'NOT_FOUND' ? 'Teecas can no longer find this order. If you were expecting it, call or WhatsApp the restaurant.' : friendlyError(e));
+      // A slow server (Render waking up) isn't an error here: the screen keeps asking every 10
+      // seconds, so it shows a loader until the answer comes.
+      if (e?.code === 'TIMEOUT') {
+        setSlow(true);
+        setError('');
+        return;
+      }
+      setSlow(false);
+      setError(e?.code === 'NOT_FOUND' ? 'Teecas Amala can no longer find this order. If you were expecting it, call or WhatsApp the restaurant.' : friendlyError(e));
       if (e?.code === 'NOT_FOUND') {
         finished.current = true;
         updateOrder(id, { gone: true });
@@ -109,7 +119,7 @@ export default function OrderScreen() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Header
         title={order ? `Order #${order.number}` : saved ? `Order #${saved.number}` : 'Your order'}
-        subtitle={order ? `${branchName || 'Teecas'} · ${order.fulfilment === 'pickup' ? 'Pickup' : 'Delivery'}` : undefined}
+        subtitle={order ? `${branchName || 'Teecas Amala'} · ${order.fulfilment === 'pickup' ? 'Pickup' : 'Delivery'}` : undefined}
         back={!fresh}
       />
       <ScrollView
@@ -129,13 +139,14 @@ export default function OrderScreen() {
           ) : undefined
         }
       >
-        {loading && !order ? <ActivityIndicator color={colors.gold} style={{ marginTop: 24 }} /> : null}
-        {error ? <Notice tone="bad">{order ? `Couldn't refresh: ${error}` : error}</Notice> : null}
+        {(loading || slow) && !order ? <ActivityIndicator color={colors.gold} style={{ marginTop: 24 }} /> : null}
+        {slow && order ? <Working /> : null}
+        <ErrorNotice prefix={order ? 'Couldn’t refresh: ' : ''}>{error}</ErrorNotice>
 
         {!order && !live && !loading ? (
           <Card style={{ gap: 10 }}>
             <T variant="h3">We can’t show this order</T>
-            <T variant="small">This order was placed without tracking, so its status can’t be followed from this phone. For an update, message Teecas on WhatsApp.</T>
+            <T variant="small">This order was placed without tracking, so its status can’t be followed from this phone. For an update, message Teecas Amala on WhatsApp.</T>
             {waUrl ? <Button label="Open WhatsApp" kind="ghost" onPress={() => Linking.openURL(waUrl).catch(() => {})} /> : null}
           </Card>
         ) : null}
@@ -147,10 +158,10 @@ export default function OrderScreen() {
                 <T variant="h3">Thank you{firstName ? `, ${firstName}` : ''}!</T>
                 <T variant="small">
                   {isDemo
-                    ? 'WhatsApp opened with your order written out for Teecas. Tap send so the restaurant gets it.'
+                    ? 'WhatsApp opened with your order written out for Teecas Amala. Tap send so the restaurant gets it.'
                     : pickup
-                      ? `${branchName || 'Teecas'} has your order. We’ll tell you here when it’s ready to collect. WhatsApp also opened with it written out; tap send so they have it there too.`
-                      : 'Teecas has your order and will send it from the branch that can get it to you fastest. WhatsApp also opened with it written out; tap send so they have it there too.'}
+                      ? `${branchName || 'Teecas Amala'} has your order. We’ll tell you here when it’s ready to collect. WhatsApp also opened with it written out; tap send so they have it there too.`
+                      : 'Teecas Amala has your order and will send it from the branch that can get it to you fastest. WhatsApp also opened with it written out; tap send so they have it there too.'}
                 </T>
                 {waUrl ? <Button label="Open WhatsApp again" kind="ghost" onPress={() => Linking.openURL(waUrl).catch(() => {})} /> : null}
               </Card>
@@ -160,7 +171,7 @@ export default function OrderScreen() {
               <Notice tone="bad">This order was cancelled{order.cancelReason ? `: ${order.cancelReason}` : '.'}</Notice>
             ) : isDemo ? (
               <Card style={{ gap: 6 }}>
-                <T variant="bold">Sent to Teecas on WhatsApp</T>
+                <T variant="bold">Sent to Teecas Amala on WhatsApp</T>
                 <T variant="small">
                   {pickup ? 'The restaurant will tell you in the WhatsApp chat when it’s ready to collect.' : 'The restaurant will confirm your order and delivery time in the WhatsApp chat.'}
                 </T>

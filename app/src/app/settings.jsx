@@ -6,7 +6,7 @@ import { Alert, AppState, Linking, Pressable, ScrollView, StyleSheet, Switch, Vi
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { deleteAccount, friendlyError, isSignedOutError } from '../api';
 import { DEMO_WHATSAPP } from '../demo';
-import { Button, Card, Header, Notice, T, tap } from '../components/ui';
+import { ErrorNotice, Button, Card, Header, Notice, T, tap } from '../components/ui';
 import { hasPermission, notificationsAvailable } from '../notifications';
 import { localPhone } from '../phone';
 import { turnNotificationsOff, turnNotificationsOn } from '../pushSync';
@@ -161,7 +161,7 @@ export default function Settings() {
                 {account.customer.email ? <Detail k="Email" v={account.customer.email} /> : null}
                 {account.customer.phone ? <Detail k="Phone" v={localPhone(account.customer.phone)} /> : null}
                 {account.customer.address ? <Detail k="Saved address" v={account.customer.address} /> : null}
-                {accountError ? <Notice tone="bad">{accountError}</Notice> : null}
+                {accountError ? <ErrorNotice>{accountError}</ErrorNotice> : null}
                 <Button label="Log out" kind="gold" onPress={signOut} />
                 <Button label="Delete my account" kind="quiet" onPress={confirmDelete} loading={deleting} />
               </>

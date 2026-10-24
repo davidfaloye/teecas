@@ -57,7 +57,7 @@ export function configureNotifications() {
   if (Platform.OS === 'android') {
     Notifications.setNotificationChannelAsync(CHANNEL_ID, {
       name: 'Order updates',
-      description: 'When Teecas accepts, sends out or delivers your order',
+      description: 'When Teecas Amala accepts, sends out or delivers your order',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 200, 120, 200],
       lightColor: '#c8451c',
@@ -77,6 +77,19 @@ export async function hasPermission() {
     return granted(await Notifications.getPermissionsAsync());
   } catch {
     return false;
+  }
+}
+
+// { granted, canAsk }. canAsk=false: the phone won't show its prompt again (the customer said no
+// before), so only the phone's settings can turn notifications on.
+export async function permissionState() {
+  const Notifications = N();
+  if (!Notifications) return { granted: false, canAsk: false };
+  try {
+    const p = await Notifications.getPermissionsAsync();
+    return { granted: granted(p), canAsk: p.canAskAgain !== false };
+  } catch {
+    return { granted: false, canAsk: false };
   }
 }
 
@@ -105,7 +118,11 @@ export async function getPushToken() {
     if (!projectId) return '';
     const { data } = await Notifications.getExpoPushTokenAsync({ projectId });
     return typeof data === 'string' ? data : '';
-  } catch {
+  } catch (e) {
+    // Without a push token, status updates only reach the phone while the app is open. On
+    // Android this is almost always missing Firebase setup (google-services.json + the FCM key
+    // on EAS): the error then says "Default FirebaseApp is not initialized".
+    console.warn('[push] could not get a push token:', e?.message || e);
     return '';
   }
 }
@@ -115,12 +132,12 @@ export function statusMessage(status, order) {
   const n = `#${order?.number ?? ''}`;
   switch (status) {
     case 'accepted':
-      return ['Order accepted', `${order?.branchName || 'Teecas'} is preparing order ${n}.`];
+      return ['Order accepted', `${order?.branchName || 'Teecas Amala'} is preparing order ${n}.`];
     case 'preparing':
       return ['Being prepared', `Order ${n} is being prepared.`];
     case 'ready':
       return order?.fulfilment === 'pickup'
-        ? ['Ready for pickup', `Order ${n} is ready. Pick it up at ${order?.branchName || 'Teecas'} and pay there.`]
+        ? ['Ready for pickup', `Order ${n} is ready. Pick it up at ${order?.branchName || 'Teecas Amala'} and pay there.`]
         : ['Order ready', `Order ${n} is ready.`];
     case 'out_for_delivery':
       return ['On the way', `Order ${n} is on its way. Have your payment ready.`];

@@ -90,7 +90,7 @@ export default function Cart() {
         <Button label="Continue" onPress={() => router.push('/checkout')} disabled={soldOut.length > 0 || !open} />
         {!open && (
           <T variant="small" style={{ color: colors.bad, textAlign: 'center', marginTop: 6 }}>
-            Teecas isn’t taking orders right now.
+            Teecas Amala isn’t taking orders right now.
           </T>
         )}
       </View>

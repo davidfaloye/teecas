@@ -4,11 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Keyboard, Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchBranches, fetchMenu, friendlyError } from '../api';
-import { Button, Notice, Stepper, T, tap } from '../components/ui';
+import { ErrorNotice, Button, Notice, Stepper, T, tap } from '../components/ui';
 import { isActiveOrder, isRecentDemoOrder } from '../orderWatcher';
 import { useStore } from '../store';
 import { colors, fonts, naira, radius, themed } from '../theme';
 import { FoodThumb } from '../components/FoodThumb';
+import { NotificationPrompt } from '../components/NotificationPrompt';
 
 const STATUS_LABEL = {
   placed: 'Sent',
@@ -187,7 +188,7 @@ export default function Menu() {
 
       {!open && (
         <View style={{ padding: 14, paddingBottom: 0 }}>
-          <Notice tone="bad">Teecas isn’t taking app orders right now. You can still browse the menu.</Notice>
+          <Notice tone="bad">Teecas Amala isn’t taking app orders right now. You can still browse the menu.</Notice>
         </View>
       )}
       {activeOrder && !searching && (
@@ -208,7 +209,7 @@ export default function Menu() {
       {!menu && !error && <ActivityIndicator color={colors.gold} style={{ marginTop: 40 }} />}
       {error && !menu ? (
         <View style={{ padding: 18, gap: 12 }}>
-          <Notice tone="bad">{error}</Notice>
+          <ErrorNotice>{error}</ErrorNotice>
           <Button label="Try again" kind="ghost" onPress={load} />
         </View>
       ) : null}
@@ -239,7 +240,7 @@ export default function Menu() {
           ListHeaderComponent={
             error ? (
               <View style={{ paddingHorizontal: 14, paddingTop: 12 }}>
-                <Notice tone="bad">{error}</Notice>
+                <ErrorNotice>{error}</ErrorNotice>
               </View>
             ) : null
           }
@@ -354,6 +355,7 @@ export default function Menu() {
           </Pressable>
         </View>
       )}
+      <NotificationPrompt />
     </View>
   );
 }

@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OFFLINE_MESSAGE, SLOW_MESSAGE } from '../api';
 import { colors, fonts, radius, themed } from '../theme';
 
 export const tap = () => Haptics.selectionAsync().catch(() => {});
@@ -135,7 +136,40 @@ export function Notice({ children, tone = 'warn' }) {
   );
 }
 
+// A server error, from friendlyError(). Being offline isn't the customer's fault or ours, so it
+// shows as a quiet bar instead of a red alert. prefix: e.g. "Couldn't refresh: " for real errors.
+export function ErrorNotice({ children, prefix = '' }) {
+  const msg = String(children || '');
+  if (!msg) return null;
+  if (msg === OFFLINE_MESSAGE) return <OfflineBar />;
+  if (msg === SLOW_MESSAGE) return <Notice>{msg}</Notice>;
+  return <Notice tone="bad">{prefix + msg}</Notice>;
+}
+
+export function OfflineBar() {
+  return (
+    <View style={styles.offline} accessibilityRole="alert">
+      <Ionicons name="cloud-offline-outline" size={18} color={colors.creamDim} />
+      <T variant="small" style={{ flex: 1 }}>
+        {OFFLINE_MESSAGE}
+      </T>
+    </View>
+  );
+}
+
+// Shown while a screen keeps retrying a slow server, instead of an error.
+export function Working({ label = 'Updating…' }) {
+  return (
+    <View style={styles.working} accessibilityRole="progressbar" accessibilityLabel={label}>
+      <ActivityIndicator size="small" color={colors.gold} />
+      <T variant="muted">{label}</T>
+    </View>
+  );
+}
+
 export const styles = themed(() => StyleSheet.create({
+  offline: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.lineSoft },
+  working: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 8 },
   btn: { minHeight: 52, borderRadius: radius.md, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10, borderWidth: 1 },
   btnText: { fontFamily: fonts.bold, fontSize: 16 },
   stepper: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bg2, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line },

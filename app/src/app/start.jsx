@@ -45,7 +45,7 @@ export default function Start() {
         <Button label="Sign in" kind="ghost" onPress={() => router.push('/signin')} />
         <Button label="Continue as guest" kind="quiet" onPress={guest} />
         <T variant="muted" style={{ textAlign: 'center' }}>
-          As a guest, your past orders are saved on this phone only. Teecas still gets your order and delivery details.
+          As a guest, your past orders are saved on this phone only. Teecas Amala still gets your order and delivery details.
         </T>
       </View>
     </View>

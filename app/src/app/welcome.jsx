@@ -41,7 +41,7 @@ const SLIDES = [
     key: 'track',
     eyebrow: 'Step 3',
     title: 'Follow every step',
-    body: "We'll let you know when Teecas accepts your order, when it's on the way and when it's delivered.",
+    body: "We'll let you know when Teecas Amala accepts your order, when it's on the way and when it's delivered.",
     art: ['🔔'],
   },
 ];

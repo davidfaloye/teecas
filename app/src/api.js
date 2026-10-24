@@ -28,6 +28,11 @@ export class ApiError extends Error {
   }
 }
 
+// The phone couldn't reach the server at all. Shown as a calm "you're offline" bar, not an error.
+export const OFFLINE_MESSAGE = 'You’re offline. Check your internet connection.';
+// The server is slow to answer (Render waking up). Screens that keep retrying show a loader.
+export const SLOW_MESSAGE = 'Teecas Amala is taking longer than usual to answer. Try again in a moment.';
+
 // A message that is safe to show a customer, whatever was thrown.
 export function friendlyError(err) {
   if (err instanceof ApiError) return err.message;
@@ -68,9 +73,7 @@ async function request(path, { method = 'GET', body, query, auth } = {}) {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw timedOut
-      ? new ApiError('Teecas is taking too long to answer. Try again in a moment.', 'TIMEOUT')
-      : new ApiError("We couldn't reach Teecas. Check your internet and try again.", 'NETWORK');
+    throw timedOut ? new ApiError(SLOW_MESSAGE, 'TIMEOUT') : new ApiError(OFFLINE_MESSAGE, 'NETWORK');
   } finally {
     clearTimeout(timer);
   }
@@ -88,7 +91,7 @@ async function request(path, { method = 'GET', body, query, auth } = {}) {
     throw new ApiError(isObject && data.error ? String(data.error) : 'Something went wrong. Try again.', isObject ? data.code : `HTTP_${res.status}`, isObject ? data.details : undefined);
   }
   if (!isObject) {
-    throw new ApiError("Teecas sent an answer we couldn't read. Try again in a moment.", 'BAD_RESPONSE');
+    throw new ApiError("Teecas Amala sent an answer we couldn't read. Try again in a moment.", 'BAD_RESPONSE');
   }
   return data;
 }
@@ -107,7 +110,7 @@ export function normalizeBranch(b) {
   if (!b || typeof b !== 'object' || !b.id) return null;
   return {
     id: text(b.id),
-    name: text(b.name, 'Teecas'),
+    name: text(b.name, 'Teecas Amala'),
     address: text(b.address),
     landmark: text(b.landmark),
     phone: text(b.phone || b.whatsapp),
@@ -249,7 +252,7 @@ export function normalizeCustomer(c) {
 }
 
 function accountsOff() {
-  return new ApiError('Accounts need the Teecas server. This preview runs on sample data.', 'DEMO_MODE');
+  return new ApiError('Accounts need the Teecas Amala server. This preview runs on sample data.', 'DEMO_MODE');
 }
 
 function session(d) {

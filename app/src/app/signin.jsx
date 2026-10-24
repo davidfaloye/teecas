@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEMO_MODE, friendlyError, signIn } from '../api';
 import { guestOrderKeys, leaveAuth } from '../authFlow';
 import { Input } from '../components/Input';
-import { Button, Card, Header, Notice, T } from '../components/ui';
+import { ErrorNotice, Button, Card, Header, Notice, T } from '../components/ui';
 import { useStore } from '../store';
 import { colors, fonts } from '../theme';
 
@@ -49,7 +49,7 @@ export default function SignIn() {
       <Header title="Sign in" subtitle="See your orders on any phone" />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
-          {DEMO_MODE ? <Notice>Accounts need the Teecas server. This preview runs on sample data, so signing in won’t work here.</Notice> : null}
+          {DEMO_MODE ? <Notice>Accounts need the Teecas Amala server. This preview runs on sample data, so signing in won’t work here.</Notice> : null}
           <Card style={{ gap: 14 }}>
             <Input
               label="Email"
@@ -95,13 +95,13 @@ export default function SignIn() {
                 Forgot password?
               </T>
             </Pressable>
-            {error ? <Notice tone="bad">{error}</Notice> : null}
+            <ErrorNotice>{error}</ErrorNotice>
             <Button label="Sign in" onPress={submit} loading={busy} />
           </Card>
 
           <Pressable accessibilityRole="button" onPress={() => router.replace('/signup')} hitSlop={8}>
             <T variant="small" style={{ textAlign: 'center' }}>
-              New to Teecas? <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }}>Create an account</T>
+              New to Teecas Amala? <T variant="small" style={{ color: colors.gold, fontFamily: fonts.semibold }}>Create an account</T>
             </T>
           </Pressable>
         </ScrollView>

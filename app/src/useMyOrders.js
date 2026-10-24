@@ -40,6 +40,7 @@ export function useMyOrders() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const [slow, setSlow] = useState(false);
   const busy = useRef(false);
 
   // Read the latest values inside the focus effect without re-running it on every change.
@@ -56,14 +57,26 @@ export function useMyOrders() {
       const { orders, more } = await fetchMyOrders(token, { limit: PAGE });
       setMyOrders(customerId, { list: orders.map(toRow), more, fetchedAt: Date.now() });
       setError('');
+      setSlow(false);
     } catch (e) {
       if (isSignedOutError(e)) signOut();
-      else setError(friendlyError(e));
+      else if (e?.code === 'TIMEOUT') {
+        // A slow server isn't an error: show a loader and ask again shortly (effect below).
+        setSlow(true);
+        setError('');
+      } else setError(friendlyError(e));
     } finally {
       busy.current = false;
       setLoading(false);
     }
   }, [token, customerId, setMyOrders, signOut]);
+
+  // Keep retrying while the server is slow, as long as the screen is open.
+  useEffect(() => {
+    if (!slow) return undefined;
+    const t = setTimeout(refresh, 3000);
+    return () => clearTimeout(t);
+  }, [slow, refresh]);
 
   const loadMore = useCallback(async () => {
     const { list, more } = latest.current.myOrders;
@@ -104,6 +117,7 @@ export function useMyOrders() {
     loading,
     loadingMore,
     error,
+    slow,
     refresh,
     loadMore,
   };

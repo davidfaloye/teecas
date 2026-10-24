@@ -4,7 +4,7 @@
 import { router } from 'expo-router';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Card, Header, Notice, T, styles } from '../components/ui';
+import { Button, Card, ErrorNotice, Header, T, Working, styles } from '../components/ui';
 import { useStore } from '../store';
 import { colors, dayAndClock, naira } from '../theme';
 import { useMyOrders } from '../useMyOrders';
@@ -46,7 +46,8 @@ export default function MyOrders() {
         ListHeaderComponent={
           <View style={{ gap: 10 }}>
             {!mine.signedIn ? <SignInPrompt /> : null}
-            {mine.error ? <Notice tone="bad">{mine.loaded ? `Couldn't refresh: ${mine.error}` : mine.error}</Notice> : null}
+            {mine.slow && mine.loaded ? <Working /> : null}
+            <ErrorNotice prefix={mine.loaded ? 'Couldn’t refresh: ' : ''}>{mine.error}</ErrorNotice>
           </View>
         }
         ListEmptyComponent={
@@ -73,7 +74,7 @@ export default function MyOrders() {
             >
               <View style={{ flex: 1, gap: 2 }}>
                 <T variant="bold" numberOfLines={1}>
-                  #{o.number} · {o.branchName || 'Teecas'}
+                  #{o.number} · {o.branchName || 'Teecas Amala'}
                 </T>
                 <T variant="muted">{dayAndClock(o.createdAt)}</T>
                 {st ? (
